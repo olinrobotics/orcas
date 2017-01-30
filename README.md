@@ -1,5 +1,5 @@
-## Autonous Underwater Vehicles Lab (AUV-Lab)
-Code repository for Olin Autonomous Underwater Vehicles Lab
+## Olin Robotic Collaborative Autonomous Submersibles (ORCAS)
+Code repository for ORCAS
 
 ### Base Architecture for Vehicles
 - HindBrain: Pixhawk Flight Controller
