@@ -1,4 +1,11 @@
 #include <Servo.h>
+#include <SoftwareSerial.h>
+
+/* DOCSTRING
+Control scheme for Not-The-Remus to be controlled remotely through an XBee radio.
+packet_w
+
+*/
 
 byte servoPin1 = 8;
 byte servoPin2 = 9;
@@ -13,20 +20,25 @@ int corresponding_signal = 1900;
 void setup() {
   servo1.attach(servoPin1);
   servo2.attach(servoPin2);
-  // servo3.attach(servoPin3);
+  servo3.attach(servoPin3);
 
 
   servo1.writeMicroseconds(1500); // send "stop" signal to ESC.
-  delay(1000);
-  servo2.writeMicroseconds(1500);
-  // servo3.writeMicroseconds(1500);
   delay(1000); // delay to allow the ESC to recognize the stopped signal
+  servo2.writeMicroseconds(1500);
+  delay(1000);
+  servo3.writeMicroseconds(1500);
+  delay(1000);
 
+  XBee.begin(9600); // Init XBee radio
   Serial.begin(9600); // opens the serial port
+  
+  XBee.write("TST: Comms to XBee");
 }
 
 void loop() {
 
+  // Updates corresponding signal (forward vs reverse, etc.)
   if (signal > 1500){
     corresponding_signal = 1500 - (signal-1500);
   }
@@ -36,10 +48,12 @@ void loop() {
   else{
     corresponding_signal = 1500;
   }
-  // check for incoming serial data:
-  if (Serial.available() > 0) {
-    // read incoming serial data:
-    char inChar = Serial.read();
+  
+  // check for incoming data through XBee:
+  if (XBee.available()) {
+    // read incoming data:
+    char inChar = XBee.read();
+    
     if (inChar == 'w'){
         Serial.println("Going forward");
         servo1.writeMicroseconds(signal); // Send signal to ESC.

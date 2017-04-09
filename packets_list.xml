@@ -17,5 +17,8 @@
     <packet name="packet_stop">
       <payload>73</payload>
     </packet>
+    <packet name="packet_test">
+      <payload>7369676E616C</payload>
+    </packet>
   </packets_list>
 </data>
