@@ -5,20 +5,32 @@
   <repeat_times>1</repeat_times>
   <repeat_period>500</repeat_period>
   <packets_list>
-    <packet name="pkt_motor1">
-      <payload>61</payload>
+    <packet name="pkt_fwd">
+      <payload>66</payload>
     </packet>
-    <packet name="packet_motor2">
+    <packet name="packet_bck">
       <payload>62</payload>
     </packet>
-    <packet name="packet_motor3">
-      <payload>63</payload>
+    <packet name="packet_left">
+      <payload>6C</payload>
     </packet>
-    <packet name="packet_stop">
+    <packet name="packet_right">
+      <payload>72</payload>
+    </packet>
+    <packet name="packet_slow">
       <payload>73</payload>
     </packet>
-    <packet name="packet_test">
-      <payload>7369676E616C</payload>
+    <packet name="packet_fast">
+      <payload>74</payload>
+    </packet>
+    <packet name="packet_float">
+      <payload>6F</payload>
+    </packet>
+    <packet name="packet_sink">
+      <payload>6E</payload>
+    </packet>
+    <packet name="packet_stop">
+      <payload>78</payload>
     </packet>
   </packets_list>
 </data>
