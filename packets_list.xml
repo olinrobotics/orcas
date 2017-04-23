@@ -15,7 +15,7 @@
       <payload>63</payload>
     </packet>
     <packet name="packet_stop">
-      <payload>73</payload>
+      <payload>78</payload>
     </packet>
     <packet name="packet_test">
       <payload>7369676E616C</payload>

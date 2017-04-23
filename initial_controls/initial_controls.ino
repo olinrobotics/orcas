@@ -3,9 +3,20 @@
 
 /* DOCSTRING
 Control scheme for Not-The-Remus to be controlled remotely through an XBee radio.
-packet_w
-
+packet_fwd - forward at [signal value]
+packet_bck - backward at [signal value]
+packet_lft - rotate left at [signal value]
+packet_rgt - rotate right at [signal value]
+packet_fst - increase [signal value] (speed up)
+packet_slw - decrease [signal value] (slow down)
+packet_flt - up at [signal value]
+packet_snk - down at [signal value]
+packet_stp - 
 */
+
+// XBee's DOUT (TX) is connected to pin 2 (Arduino's Software RX)
+// XBee's DIN (RX) is connected to pin 3 (Arduino's Software TX)
+SoftwareSerial XBee(2, 3); // RX, TX
 
 byte servoPin1 = 8;
 byte servoPin2 = 9;
@@ -13,22 +24,26 @@ byte servoPin3 = 10;
 Servo servo1;
 Servo servo2;
 Servo servo3;
-int stop = 1500; // stop value, which is 1500 (center of values for rotation servo)
-int signal = 1600; // Set signal value, which should be between 1100 and 1900
+int stop = 1500; // stop value: 1500 (center of values for rotation servo)
+int signal = 1700; // Set signal value (between 1100 and 1900)
 int corresponding_signal = 1900;
+int pause = 10; // ms to pause btw messages
+boolean state = true; // Setting for printing or running
 
 void setup() {
+  
+  
   servo1.attach(servoPin1);
   servo2.attach(servoPin2);
   servo3.attach(servoPin3);
 
 
   servo1.writeMicroseconds(1500); // send "stop" signal to ESC.
-  delay(1000); // delay to allow the ESC to recognize the stopped signal
+  delay(pause); // delay to allow the ESC to recognize the stopped signal
   servo2.writeMicroseconds(1500);
-  delay(1000);
+  delay(pause);
   servo3.writeMicroseconds(1500);
-  delay(1000);
+  delay(pause);
 
   XBee.begin(9600); // Init XBee radio
   Serial.begin(9600); // opens the serial port
@@ -53,65 +68,86 @@ void loop() {
   if (XBee.available()) {
     // read incoming data:
     char inChar = XBee.read();
+    Serial.println(inChar);
     
-    if (inChar == 'w'){
-        Serial.println("Going forward");
+    if (inChar == 'f'){
+      if (state == true) Serial.println("Going forward");
         servo1.writeMicroseconds(signal); // Send signal to ESC.
+        delay(pause);
         servo2.writeMicroseconds(signal);
+        delay(pause);
         servo3.writeMicroseconds(stop);
-        delay(1000);
+        delay(pause);
     }
-    else if (inChar == 'a'){
-        Serial.println("Going left");
+    
+    else if (inChar == 'l'){
+      if (state == true) Serial.println("Going left");
         servo1.writeMicroseconds(signal); // Send signal to ESC.
+        delay(pause);
         servo2.writeMicroseconds(corresponding_signal);
+        delay(pause);
         servo3.writeMicroseconds(stop);
-        delay(1000);
+        delay(pause);
     }
-    else if (inChar == 'd'){
-        Serial.println("Going right");
+    
+    else if (inChar == 'r'){
+      if (state == true) Serial.println("Going right");
         servo1.writeMicroseconds(corresponding_signal); // Send signal to ESC.
+        delay(pause);
         servo2.writeMicroseconds(signal);
+        delay(pause);
         servo3.writeMicroseconds(stop);
-        delay(1000);
+        delay(pause);
     }
-    else if (inChar == 's'){
-        Serial.println("Going backwards");
+    
+    else if (inChar == 'b'){
+      if (state == true) Serial.println("Going backwards");
         servo1.writeMicroseconds(corresponding_signal);
+        delay(pause);
         servo2.writeMicroseconds(corresponding_signal);
+        delay(pause);
         servo3.writeMicroseconds(stop);
-        delay(1000);
+        delay(pause);
     }
-    else if (inChar == 'k' && signal < 1900){
-        signal = signal + 100;
-        Serial.println("Increasing the signal to: ");
-        Serial.println(signal);
+    
+    else if (inChar == 't' && signal < 1900){
+      signal = signal + 100;
+      if (state == true)Serial.println("Increasing the signal to: " + String(signal));
     }
-    else if (inChar == 'j' && signal > 1100){
-        signal = signal - 100;
-        Serial.println("Decreasing the signal to: ");
-        Serial.println(signal);
+    
+    else if (inChar == 's' && signal > 1100){
+      signal = signal - 100;
+      if (state == true)Serial.println("Decreasing the signal to: " + String(signal));
     }
-    else if (inChar == 'u'){
-        Serial.println("Going up");
+    
+    else if (inChar == 'o'){
+      if (state == true) Serial.println("Going up");
         servo1.writeMicroseconds(stop);
+        delay(pause);
         servo2.writeMicroseconds(stop);
+        delay(pause);
         servo3.writeMicroseconds(signal);
-        delay(1000);
+        delay(pause);
     }
-    else if (inChar == 'i'){
-        Serial.println("Going down");
+    
+    else if (inChar == 'n'){
+      if (state == true) Serial.println("Going down");
         servo1.writeMicroseconds(stop);
+        delay(pause);
         servo2.writeMicroseconds(stop);
+        delay(pause);
         servo3.writeMicroseconds(corresponding_signal);
-        delay(1000);
+        delay(pause);
     }
-    else if (inChar == ' '){
-      Serial.println("Stopping all motors!");
-      servo1.writeMicroseconds(stop);
-      servo2.writeMicroseconds(stop);
-      servo3.writeMicroseconds(stop);
-      delay(1000);
+    
+    else if (inChar == 'x'){
+      if (state == true) Serial.println("Stopping all motors!");
+        servo1.writeMicroseconds(stop);
+        delay(pause);
+        servo2.writeMicroseconds(stop);
+        delay(pause);
+        servo3.writeMicroseconds(stop);
+        delay(pause);
     }
-}
+  }
 }

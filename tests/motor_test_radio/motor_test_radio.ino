@@ -11,8 +11,9 @@ byte servoPin3 = 10;
 Servo servo1;
 Servo servo2;
 Servo servo3;
-int stop = 1500; // stop value, which is 1500 (center of values for rotation servo)
-int signal = 1100; // Set signal value, which should be between 1100 and 1900
+int halt = 1500; // stop value, which is 1500 (center of values for rotation servo)
+int signal = 1700; // Set signal value, which should be between 1100 and 1900
+int time = 1000; // Set time value for which to pause btw msgs
 
 void setup() {
    servo1.attach(servoPin1);
@@ -21,11 +22,11 @@ void setup() {
 
 
 // For each servo, send 'stop' signal, then wait for ESC to recognize
-  servo1.writeMicroseconds(1500);
+  servo1.writeMicroseconds(halt);
   delay(1000);
-  servo2.writeMicroseconds(1500);
+  servo2.writeMicroseconds(halt);
   delay(1000);
-  servo3.writeMicroseconds(1500);
+  servo3.writeMicroseconds(halt);
   delay(1000);
 
   XBee.begin(9600); // Init XBee radio
@@ -47,32 +48,40 @@ void loop() {
     if (inChar == 'a'){
     servo1.writeMicroseconds(signal); // Send signal to ESC.
       Serial.print("MSG: Working . . .");
-      delay(1000);
+      delay(time);
       Serial.print("Set servo 1 to " + String(signal) + "\n");
     }
     else if (inChar == 'b'){
       servo2.writeMicroseconds(signal);
       Serial.print("MSG: Working . . .");
-      delay(1000);
+      delay(time);
       Serial.print("Set servo 2 to " + String(signal) + "\n");
     }
     else if (inChar == 'c'){
       servo3.writeMicroseconds(signal);
       Serial.print("MSG: Working . . .");
-      delay(1000);
+      delay(time);
       Serial.print("Set servo 3 to " + String(signal) + "\n");
     }
-    else if (inChar == 's'){
+    else if (inChar == 'x'){
       Serial.print("MSG: Working .");
-      servo1.writeMicroseconds(stop);
-      delay(1000);
+      servo1.writeMicroseconds(halt);
+      delay(time);
       Serial.print(" .");
-      servo2.writeMicroseconds(stop);
-      delay(1000);
+      servo2.writeMicroseconds(halt);
+      delay(time);
       Serial.print(" .");
-      servo3.writeMicroseconds(stop);
-      delay(1000);
+      servo3.writeMicroseconds(halt);
+      delay(time);
       Serial.print("Stopped all servos\n");
+    }
+    else if (inChar == 'f'){
+      signal += 100;
+      Serial.print("MSG: Signal now " + String(signal) + "\n");
+    }
+        else if (inChar == 's'){
+      signal -= 100;
+      Serial.print("MSG: Signal now " + String(signal) + "\n");
     }
     else{
       Serial.print("MSG: Unknown Input\n");
