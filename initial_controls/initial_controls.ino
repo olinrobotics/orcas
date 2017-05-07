@@ -37,6 +37,7 @@ void setup() {
   servo1.attach(servoPin1);
   servo2.attach(servoPin2);
   servo3.attach(servoPin3);
+  pinMode(12, OUTPUT);
 
 
   servo1.writeMicroseconds(1500); // send "stop" signal to ESC.
@@ -75,6 +76,9 @@ void loop() {
     // read incoming data:
     char inChar = XBee.read();
     Serial.println(inChar);
+    digitalWrite(12, HIGH);
+    delay(pause);
+    digitalWrite(12, LOW);
     
     if (inChar == 'f'){
       if (state == true) Serial.println("Going forward");
