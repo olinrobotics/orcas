@@ -125,15 +125,21 @@ void loop() {
     }
     
     else if (inChar == 't' && signal < 1900){
-      signal = signal + 100;
-      if (state == true){Serial.println("Increasing the signal to: " + String(signal));
-      XBee.write("Increasing the signal" );
+      signal = signal + 10;
+      String strSig = String(signal);
+      String message = "Increasing the signal to " + strSig;
+      char const* msg = message.c_str();
+      if (state == true){Serial.println(msg);
+      XBee.write(msg);
     }}
     
     else if (inChar == 's' && signal > 1100){
-      signal = signal - 100;
-      if (state == true){Serial.println("Decreasing the signal to: " + String(signal));
-      XBee.write("Decreasing the signal");
+      signal = signal - 10;
+      String strSig = String(signal);
+      String message = "Decreasing the signal to " + strSig;
+      char const* msg = message.c_str();
+      if (state == true){Serial.println(msg);
+      XBee.write(msg);
     }}
     
     else if (inChar == 'o'){
