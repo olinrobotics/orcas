@@ -27,6 +27,7 @@ void setup()
   // setting of your XBee.
   XBee.begin(9600);
   Serial.begin(9600);
+  XBee.write("Testing . . .");
 }
 
 void loop()
