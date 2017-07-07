@@ -14,11 +14,12 @@ static int elevatorHorizPin = 3; //Right stick left-right
 static int safetyPin = 6; //RTS switch
 
 static int minRange = 1400; // Minimum transmitter signal
-static int maxRange = 2500; // Maximum transmitter signal
+static int maxRange = 2400; // Maximum transmitter signal
 static int midRange = minRange + ((maxRange - minRange)/2); // Mid transmitter signal
-static float servoConvert = 180/(maxRange - minRange); // Convert from transmitter signal to servo signal
+static float servoConvert = 180.0/float(maxRange - minRange); // Convert from transmitter signal to servo signal
 
-static int deadRange = 30; // Dead zone band on transmitter
+static int deadRangeT = 30; // Dead zone band on throttle
+static int deadRangeE = 30; // Dead zone band on elevator
 
 static boolean debug = true; //Set True if Serial debugging
 int flightMode = 0; //Stores flight mode
@@ -76,7 +77,7 @@ void loop() {
   ch4 = pulseIn(elevatorVertPin, HIGH, 25000);
   ch5 = pulseIn(safetyPin, HIGH, 25000);
   
-/*  //Prints receiver values if debugging
+   //Prints receiver values if debugging
   if(debug) {
     Serial.print("DBG: THsig: ");
     Serial.print(ch1);
@@ -88,7 +89,7 @@ void loop() {
     Serial.print(ch4);
     Serial.print(" | SSig: ");
     Serial.println(ch5);
-  }*/
+  }
       
   // Checks for RTS switch flipped
   if (ch5 > midRange) {
@@ -103,11 +104,11 @@ void loop() {
     if (flightMode == 0) {
       flightMode0(ch1, ch2, ch3, ch4, &lThrust, &rThrust, &tThrust);
     }
-      
+
     else if (flightMode == 1) {
       //flightMode1(ch1, ch2, ch3, ch4, lThrust, rThrust, tThrust);
     }
-      
+  
     else if (flightMode == 2){
       //flightMode2(ch1, ch2, ch3, ch4, lThrust, rThrust, tThrust);
     }
@@ -140,6 +141,7 @@ void loop() {
  
 void flightMode0(int THsig, int TVsig, int EHsig, int EVsig, float *lThrust, float *rThrust, float *tThrust) {
   
+  // Clean signals
   float power = getPower(TVsig);
   THsig = midRange - cleanSignal(THsig);
   if  (debug) {
@@ -147,22 +149,38 @@ void flightMode0(int THsig, int TVsig, int EHsig, int EVsig, float *lThrust, flo
     Serial.println(THsig);
   }
   
-  // Turning right
-  if (THsig > deadRange) {
-    *lThrust = power * 180;
-    *rThrust = power * servoConvert * THsig;
-  }
+  EVsig = midRange = cleanSignal(EVsig);
+  /*if (debug) {
+    Serial.print("DBG: cleaned EVsig: ");
+    Serial.println(EVsig);
+  }*/
   
+  // Turning right
+  if (THsig > deadRangeT) {
+    *lThrust = power * 180;
+    *rThrust = *lThrust - power * (servoConvert) * THsig;
+  }
+
   // Turning left
-  else if (THsig < -deadRange) {
+  else if (THsig < -deadRangeT) {
     *rThrust = power * 180;
-    *lThrust = power * servoConvert * (float(midRange) + 2 * THsig);
+    *lThrust = *rThrust - power * (servoConvert) * -THsig;
   }
   
   // Going straight
   else {
     *rThrust = power * 180;
     *lThrust = power * 180;
+  }
+  
+  // Going up
+  if (EVsig > deadRangeT) {
+    *tThrust = power * servoConvert * (float(midRange) + 2 * EVsig);
+  }
+  
+  // Going down
+  else {
+    *tThrust = power * servoConvert * (float(midRange) - 2 * EVsig);
   }
 }
 
