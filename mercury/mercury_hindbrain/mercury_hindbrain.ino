@@ -12,6 +12,21 @@ boolean debug = true;                   // Serial output switch
 int ledState = HIGH;                    // Binary LED state indicator
 char message = 'g';                     // I/O storage variable from MidBrain 
 
+// Receiver channels
+int ch1;
+int ch2;
+int ch3;
+int ch4;
+int ch5;
+int ch6;
+
+//Pin to Control Mapping
+static int throttleVertPin = 2; //Left stick up-down
+static int throttleHorizPin = 5; //Left stick left-right
+static int elevatorVertPin = 4; //Right stick up-down
+static int elevatorHorizPin = 3; //Right stick left-right
+static int safetyPin = 6; //RTS switch
+
 // Define array of 1 rgb led
 #define DATA_PIN 0
 #define NUM_LEDS 1

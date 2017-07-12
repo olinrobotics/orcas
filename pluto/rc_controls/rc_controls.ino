@@ -1,17 +1,33 @@
+/* Pluto RC-Control
+ *  AUTH: Connor Novak
+ *  MAIL: connor@students.olin.edu
+ *  VERS: 1.2
+ *  DESC: Through the use of a 72 MHz transmitter-receiver pair, remote-controls a small submersible
+ */
+
 #include <Servo.h>
+
+// Uncomment line below for output through serial monitor
+#define DEBUG true
+
+// Pin to Control Mapping
+#define THROTTLE_V_PIN 2  // Left stick up-down
+#define THROTTLE_H_PIN 5  // Left stick left-right
+#define ELEVATOR_V_PIN 4  // Right stick up-down
+#define ELEVATOR_H_PIN 3  // Right stick left-right
+#define SAFETY_PIN 6      // RTS switch
+#define RUNNING_LED_PIN 0 // Off/On/Active LED
+#define STATUS_LED_PIN 1  // FLight Mode/Error LED
+#define ACTIVATE_SWITCH 7 // Activation Reed Switch
+#define THRUSTER_1_PIN 9  // Left Thruster
+#define THRUSTER_2_PIN 10 // Right Thruster
+#define THRUSTER_3_PIN 11 // Top Thruster
 
 int ch1;
 int ch2;
 int ch3;
 int ch4;
 int ch5;
-
-//Pin to Control Mapping
-static int throttleVertPin = 2; //Left stick up-down
-static int throttleHorizPin = 5; //Left stick left-right
-static int elevatorVertPin = 4; //Right stick up-down
-static int elevatorHorizPin = 3; //Right stick left-right
-static int safetyPin = 6; //RTS switch
 
 static int minRange = 1400; // Minimum transmitter signal
 static int maxRange = 2400; // Maximum transmitter signal
@@ -21,15 +37,11 @@ static float servoConvert = 180.0/float(maxRange - minRange); // Convert from tr
 static int deadRangeT = 30; // Dead zone band on throttle
 static int deadRangeE = 30; // Dead zone band on elevator
 
-static boolean debug = true; //Set True if Serial debugging
 int flightMode = 0; //Stores flight mode
 
-//Pin to Motor Mapping
-static int t1Pin = 9;
+//Servo Init
 Servo thruster1;
-static int t2Pin = 10;
 Servo thruster2;
-static int t3Pin = 11;
 Servo thruster3;
 
 // Declare vars for servo values
@@ -38,64 +50,66 @@ float rThrust;
 float tThrust;
 
 
-/* FUNCTION: Sets up various things for program
- ARG: none
- RTN: none*/
+/* FUNCTION: Main setup function
+ ARGS: none
+ RTRN: none*/
  
 void setup() {
   
   // Set receiver pins to input; thruster pins to output
-  pinMode(throttleVertPin, INPUT);
-  pinMode(throttleHorizPin, INPUT);
-  pinMode(elevatorVertPin, INPUT);
-  pinMode(elevatorHorizPin, INPUT);
-  pinMode(safetyPin, INPUT);
-  thruster1.attach(t1Pin);
-  thruster2.attach(t2Pin);
-  thruster3.attach(t3Pin);
+  pinMode(THROTTLE_V_PIN, INPUT);
+  pinMode(THROTTLE_H_PIN, INPUT);
+  pinMode(ELEVATOR_V_PIN, INPUT);
+  pinMode(ELEVATOR_H_PIN, INPUT);
+  pinMode(SAFETY_PIN, INPUT);
+  thruster1.attach(THRUSTER_1_PIN);
+  thruster2.attach(THRUSTER_2_PIN);
+  thruster3.attach(THRUSTER_3_PIN);
   
-  // TODO: Turn all props off for safety
+  // Turn all props off for safety
   lThrust = 0;
   rThrust = 0;
   tThrust = 0;
 
-  if (debug) {Serial.begin(9600);} //Starts Serial if debugging
+  #ifdef DEBUG //Starts Serial if debugging
+  Serial.begin(9600);
+  #endif
 }
 
-/* FUNCTION: Main loop body for program
+/* FUNCTION: Main loop function
  ARG: none
  RTN: none*/
  
 void loop() {
   
-  if (debug) {delay(500);} // Slow things down for debugging
+  #ifdef DEBUG //Slows things down for debugging
+  delay(500);
+  #endif
   
   //Stores read values from receiver 
-  ch1 = pulseIn(throttleHorizPin, HIGH, 25000);
-  ch2 = pulseIn(throttleVertPin, HIGH, 25000);
-  ch3 = pulseIn(elevatorHorizPin, HIGH, 25000);
-  ch4 = pulseIn(elevatorVertPin, HIGH, 25000);
-  ch5 = pulseIn(safetyPin, HIGH, 25000);
+  ch1 = pulseIn(THROTTLE_H_PIN, HIGH, 25000);
+  ch2 = pulseIn(THROTTLE_V_PIN, HIGH, 25000);
+  ch3 = pulseIn(ELEVATOR_H_PIN, HIGH, 25000);
+  ch4 = pulseIn(ELEVATOR_V_PIN, HIGH, 25000);
+  ch5 = pulseIn(SAFETY_PIN, HIGH, 25000);
   
-   //Prints receiver values if debugging
-  if(debug) {
-    Serial.print("DBG: THsig: ");
-    Serial.print(ch1);
-    Serial.print(" | TVsig: ");
-    Serial.print(ch2);
-    Serial.print(" | EHSig: ");
-    Serial.print(ch3);
-    Serial.print(" | EVSig: ");
-    Serial.print(ch4);
-    Serial.print(" | SSig: ");
-    Serial.println(ch5);
-  }
+  #ifdef DEBUG // Prints receiver values if debugging
+  Serial.print("DBUG: THsig: ");
+  Serial.print(ch1);
+  Serial.print(" | TVsig: ");
+  Serial.print(ch2);
+  Serial.print(" | EHSig: ");
+  Serial.print(ch3);
+  Serial.print(" | EVSig: ");
+  Serial.print(ch4);
+  Serial.print(" | SSig: ");
+  Serial.println(ch5);
+  #endif
       
   // Checks for RTS switch flipped
   if (ch5 > midRange) {
     
-    //Calls RTS function
-    returnToSurface(&lThrust, &rThrust, &tThrust);
+    returnToSurface(&lThrust, &rThrust, &tThrust); // Calls RTS function
   }
     
   else {
@@ -114,7 +128,9 @@ void loop() {
     }
     else {
       returnToSurface(&lThrust, &rThrust, &tThrust);
-      if(debug) {Serial.println("ERR: Flight mode not registered");}
+      #ifdef DEBUG // Print Error message if debugging
+      Serial.println("EROR: Flight mode not registered");
+      #endif
       
     }
   }
@@ -124,15 +140,15 @@ void loop() {
   thruster2.write(rThrust);
   thruster3.write(tThrust);
   
-  // Print out thrust values
-  if (debug){
-    Serial.print("DBG: Left: ");
-    Serial.print(int(lThrust));
-    Serial.print(" | Right: ");
-    Serial.print(int(rThrust));
-    Serial.print(" | Vertical: ");
-    Serial.println(int(tThrust));
-  }
+  
+  #ifdef DEBUG // Print out thrust values if debugging
+  Serial.print("DBUG: Left: ");
+  Serial.print(int(lThrust));
+  Serial.print(" | Right: ");
+  Serial.print(int(rThrust));
+  Serial.print(" | Vertical: ");
+  Serial.println(int(tThrust));
+  #endif
 }
 
 /* FUNCTION: Give thruster inputs for flight mode 0 (stabilize)
@@ -144,10 +160,11 @@ void flightMode0(int THsig, int TVsig, int EHsig, int EVsig, float *lThrust, flo
   // Clean signals
   float power = getPower(TVsig);
   THsig = midRange - cleanSignal(THsig);
-  if  (debug) {
-    Serial.print("DBG: cleaned THsig: ");
-    Serial.println(THsig);
-  }
+  
+  #ifdef DEBUG // Print out throttle signal if debugging
+  Serial.print("DBG: cleaned THsig: ");
+  Serial.println(THsig);
+  #endif
   
   EVsig = midRange = cleanSignal(EVsig);
   /*if (debug) {
@@ -175,12 +192,12 @@ void flightMode0(int THsig, int TVsig, int EHsig, int EVsig, float *lThrust, flo
   
   // Going up
   if (EVsig > deadRangeT) {
-    *tThrust = power * servoConvert * (float(midRange) + 2 * EVsig);
+    *tThrust = power * servoConvert *  EVsig;
   }
   
   // Going down
   else {
-    *tThrust = power * servoConvert * (float(midRange) - 2 * EVsig);
+    *tThrust = power * servoConvert * -EVsig;
   }
 }
 
