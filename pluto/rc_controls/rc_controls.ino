@@ -42,7 +42,9 @@ static float servoConvert = 180.0/float(maxRange - minRange); // Convert from tr
 static int deadRangeT = 30; // Dead zone band on throttle
 static int deadRangeE = 30; // Dead zone band on elevator
 
-int flightMode = 0; //Stores flight mode
+int flightMode = 0;
+boolean isActivated = false;
+int prevSwitchState = LOW;
 
 //Servo Init
 Servo thruster1;
@@ -68,6 +70,7 @@ void setup() {
   pinMode(ELEVATOR_V_PIN, INPUT);
   pinMode(ELEVATOR_H_PIN, INPUT);
   pinMode(SAFETY_PIN, INPUT);
+  pinMode(ACTIVATE_SWITCH, INPUT);
   pinMode(RUNNING_LED_PIN, OUTPUT);
   thruster1.attach(THRUSTER_1_PIN);
   thruster2.attach(THRUSTER_2_PIN);
@@ -94,7 +97,8 @@ void loop() {
   delay(500);
   #endif
 
-  ledState = updateRunningLED(ledState);
+  isActivated = updateActivateSwitch(isActivated);
+  ledState = updateRunningLED(ledState, isActivated);
   
   //Stores read values from receiver 
   ch1 = pulseIn(THROTTLE_H_PIN, HIGH, 25000);
@@ -161,29 +165,78 @@ void loop() {
   #endif
 }
 
-/* FUNCTION: Update running LED on a given interval
- *  ARGS: none
- *  RTNS: none
+/* FUNCTION: Check activation switch
+ *  ARGS: boolean - whether or not sub is activated
+ *        int - previous state of switch
+ *  RTNS: boolean - updated sub activation status
  */
-int updateRunningLED(int state) {
+
+boolean updateActivateSwitch(boolean active) {
+    int currState = digitalRead(ACTIVATE_SWITCH);
+    boolean newActive;
+    
+    // Action
+    if (currState != prevSwitchState) {
+
+      // Pressed
+      if (currState == LOW) {
+        newActive = !active;
+        #ifdef DEBUG
+        Serial.println("MSSG: Activation switch toggled");
+        #endif
+      }
+
+      // Depressed
+      else if (currState == HIGH) {
+        newActive = active;
+      }
+    }
+
+    // No action
+    else if (currState == prevSwitchState) {
+      newActive = active;
+    }
+   prevSwitchState = currState;
+   return newActive;
+ }
+ 
+/* FUNCTION: Update running LED on a given interval
+ *  ARGS: integer - current state of LED
+ *  RTNS: integer - new state of LED
+ */
+int updateRunningLED(int state, boolean isActivated) {
   unsigned long currMillis = millis();
-  if (currMillis - prevMillis > RUNNING_LED_INTERVAL) {
-    prevMillis = currMillis;
+  if (isActivated == false) {
+    if (currMillis - prevMillis > RUNNING_LED_INTERVAL) {
+      prevMillis = currMillis;
+      if (state == LOW) {
+        state = HIGH;
+      }
+      else if (state == HIGH) {
+        state = LOW;
+      }
+      else {
+        #ifdef DEBUG
+        Serial.println("EROR: LED state value non-binary!");
+        #endif
+      }
+  
+      digitalWrite(RUNNING_LED_PIN, state);
+    }
+  }
+  else if (isActivated == true) {
     if (state == LOW) {
       state = HIGH;
-      Serial.println("True");
+      digitalWrite(RUNNING_LED_PIN, state);
     }
     else if (state == HIGH) {
-      state = LOW;
-      Serial.println("False");
+      // pass
     }
     else {
       #ifdef DEBUG
       Serial.println("EROR: LED state value non-binary!");
       #endif
     }
-
-    digitalWrite(RUNNING_LED_PIN, state);
   }
   return state;
  }
