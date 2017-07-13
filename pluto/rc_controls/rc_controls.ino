@@ -1,7 +1,8 @@
 /* Pluto RC-Control
  *  AUTH: Connor Novak
  *  MAIL: connor@students.olin.edu
- *  VERS: 1.2
+ *  DATE: 17/07/12
+ *  VERS: 1.3
  *  DESC: Through the use of a 72 MHz transmitter-receiver pair, remote-controls a small submersible
  */
 
@@ -11,17 +12,20 @@
 #define DEBUG true
 
 // Pin to Control Mapping
-#define THROTTLE_V_PIN 2  // Left stick up-down
-#define THROTTLE_H_PIN 5  // Left stick left-right
-#define ELEVATOR_V_PIN 4  // Right stick up-down
-#define ELEVATOR_H_PIN 3  // Right stick left-right
-#define SAFETY_PIN 6      // RTS switch
-#define RUNNING_LED_PIN 0 // Off/On/Active LED
-#define STATUS_LED_PIN 1  // FLight Mode/Error LED
-#define ACTIVATE_SWITCH 7 // Activation Reed Switch
-#define THRUSTER_1_PIN 9  // Left Thruster
-#define THRUSTER_2_PIN 10 // Right Thruster
-#define THRUSTER_3_PIN 11 // Top Thruster
+#define THROTTLE_V_PIN 2            // Left stick up-down
+#define THROTTLE_H_PIN 5            // Left stick left-right
+#define ELEVATOR_V_PIN 4            // Right stick up-down
+#define ELEVATOR_H_PIN 3            // Right stick left-right
+#define SAFETY_PIN 6                // RTS switch
+#define RUNNING_LED_PIN 13           // Off/On/Active LED
+#define STATUS_LED_PIN 1            // FLight Mode/Error LED
+#define ACTIVATE_SWITCH 7           // Activation Reed Switch
+#define THRUSTER_1_PIN 9            // Left Thruster
+#define THRUSTER_2_PIN 10           // Right Thruster
+#define THRUSTER_3_PIN 11           // Top Thruster
+
+// Other constants
+#define RUNNING_LED_INTERVAL 500   // LED time delay
 
 int ch1;
 int ch2;
@@ -29,9 +33,10 @@ int ch3;
 int ch4;
 int ch5;
 
-static int minRange = 1400; // Minimum transmitter signal
-static int maxRange = 2400; // Maximum transmitter signal
-static int midRange = minRange + ((maxRange - minRange)/2); // Mid transmitter signal
+unsigned long prevMillis = millis();                          // Time-tracking variable
+static int minRange = 1400;                                   // Minimum transmitter signal
+static int maxRange = 2400;                                   // Maximum transmitter signal
+static int midRange = minRange + ((maxRange - minRange)/2);   // Mid transmitter signal
 static float servoConvert = 180.0/float(maxRange - minRange); // Convert from transmitter signal to servo signal
 
 static int deadRangeT = 30; // Dead zone band on throttle
@@ -44,10 +49,11 @@ Servo thruster1;
 Servo thruster2;
 Servo thruster3;
 
-// Declare vars for servo values
+// Declare vars for servo values, led states
 float lThrust;
 float rThrust;
 float tThrust;
+int ledState = HIGH;
 
 
 /* FUNCTION: Main setup function
@@ -56,20 +62,22 @@ float tThrust;
  
 void setup() {
   
-  // Set receiver pins to input; thruster pins to output
+  // Set pin modes
   pinMode(THROTTLE_V_PIN, INPUT);
   pinMode(THROTTLE_H_PIN, INPUT);
   pinMode(ELEVATOR_V_PIN, INPUT);
   pinMode(ELEVATOR_H_PIN, INPUT);
   pinMode(SAFETY_PIN, INPUT);
+  pinMode(RUNNING_LED_PIN, OUTPUT);
   thruster1.attach(THRUSTER_1_PIN);
   thruster2.attach(THRUSTER_2_PIN);
   thruster3.attach(THRUSTER_3_PIN);
   
-  // Turn all props off for safety
+  // Turn all props off, running LED on for safety
   lThrust = 0;
   rThrust = 0;
   tThrust = 0;
+  digitalWrite(RUNNING_LED_PIN, ledState);
 
   #ifdef DEBUG //Starts Serial if debugging
   Serial.begin(9600);
@@ -85,6 +93,8 @@ void loop() {
   #ifdef DEBUG //Slows things down for debugging
   delay(500);
   #endif
+
+  ledState = updateRunningLED(ledState);
   
   //Stores read values from receiver 
   ch1 = pulseIn(THROTTLE_H_PIN, HIGH, 25000);
@@ -151,6 +161,33 @@ void loop() {
   #endif
 }
 
+/* FUNCTION: Update running LED on a given interval
+ *  ARGS: none
+ *  RTNS: none
+ */
+int updateRunningLED(int state) {
+  unsigned long currMillis = millis();
+  if (currMillis - prevMillis > RUNNING_LED_INTERVAL) {
+    prevMillis = currMillis;
+    if (state == LOW) {
+      state = HIGH;
+      Serial.println("True");
+    }
+    else if (state == HIGH) {
+      state = LOW;
+      Serial.println("False");
+    }
+    else {
+      #ifdef DEBUG
+      Serial.println("EROR: LED state value non-binary!");
+      #endif
+    }
+
+    digitalWrite(RUNNING_LED_PIN, state);
+  }
+  return state;
+ }
+ 
 /* FUNCTION: Give thruster inputs for flight mode 0 (stabilize)
  ARG: throttle vert. @ horiz. signals, elevator vert. @ horiz. signals
  RTN: none*/
@@ -230,7 +267,7 @@ float getPower(int THsig) {
     return (power/1000);
 }
 
-/* FUNCTION: Slam signal between minRange & maxRange
+/* FUNCTION: Chop signal to between minRange & maxRange
  ARG: integer signal to clean
  RTN: cleaned signal*/
 
