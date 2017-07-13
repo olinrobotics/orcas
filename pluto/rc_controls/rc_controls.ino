@@ -2,7 +2,7 @@
  *  AUTH: Connor Novak
  *  MAIL: connor@students.olin.edu
  *  DATE: 17/07/12
- *  VERS: 1.3
+ *  VERS: 1.4
  *  DESC: Through the use of a 72 MHz transmitter-receiver pair, remote-controls a small submersible
  */
 
@@ -45,6 +45,7 @@ static int deadRangeE = 30; // Dead zone band on elevator
 int flightMode = 0;
 boolean isActivated = false;
 int prevSwitchState = LOW;
+int errorNum = 0;
 
 //Servo Init
 Servo thruster1;
@@ -97,15 +98,23 @@ void loop() {
   delay(500);
   #endif
 
-  isActivated = updateActivateSwitch(isActivated);
-  ledState = updateRunningLED(ledState, isActivated);
-  
   //Stores read values from receiver 
   ch1 = pulseIn(THROTTLE_H_PIN, HIGH, 25000);
   ch2 = pulseIn(THROTTLE_V_PIN, HIGH, 25000);
   ch3 = pulseIn(ELEVATOR_H_PIN, HIGH, 25000);
   ch4 = pulseIn(ELEVATOR_V_PIN, HIGH, 25000);
   ch5 = pulseIn(SAFETY_PIN, HIGH, 25000);
+
+  errorNum = checkSafeties();
+  
+  // TODO: update status LED here
+  
+  // Mission critical errors
+  if (errorNum > 1) {
+    returnToSurface(&lThrust, &rThrust, &tThrust);
+  }
+  isActivated = updateActivateSwitch(isActivated);
+  ledState = updateRunningLED(ledState, isActivated);
   
   #ifdef DEBUG // Prints receiver values if debugging
   Serial.print("DBUG: THsig: ");
@@ -165,6 +174,31 @@ void loop() {
   #endif
 }
 
+
+/* FUNCTION: Checks safeties (transmitter comms, water level/humidity sensor, voltage sensor)
+ *  ARGS: none
+ *  RTNS: integer - error code 
+ *  INFO: Code 0 is no error, 1 is no transmitter comms, 2 is water level, 3 is battery voltage, 4 is other
+ */
+
+int checkSafeties() {
+
+  // Check transmitter comms
+  if (ch1 == 0 || ch2 == 0 || ch3 == 0 || ch4 == 0 || ch5 == 0) {
+    return 1;
+    #ifdef DEBUG
+    Serial.println("EROR: Lost Transmitter Comms!");
+    #endif
+  }
+
+  // Check water sensor (TODO)
+
+  // Check battery voltage (TODO)
+
+  // Check other (TODO)
+}
+
+
 /* FUNCTION: Check activation switch
  *  ARGS: boolean - whether or not sub is activated
  *        int - previous state of switch
@@ -199,6 +233,7 @@ boolean updateActivateSwitch(boolean active) {
    prevSwitchState = currState;
    return newActive;
  }
+
  
 /* FUNCTION: Update running LED on a given interval
  *  ARGS: integer - current state of LED
@@ -240,11 +275,12 @@ int updateRunningLED(int state, boolean isActivated) {
   }
   return state;
  }
+
  
 /* FUNCTION: Give thruster inputs for flight mode 0 (stabilize)
  ARG: throttle vert. @ horiz. signals, elevator vert. @ horiz. signals
  RTN: none*/
- 
+
 void flightMode0(int THsig, int TVsig, int EHsig, int EVsig, float *lThrust, float *rThrust, float *tThrust) {
   
   // Clean signals
@@ -291,6 +327,7 @@ void flightMode0(int THsig, int TVsig, int EHsig, int EVsig, float *lThrust, flo
   }
 }
 
+
 /* FUNCTION: Return sub to surface
  ARG: none
  RTN: none*/
@@ -300,6 +337,7 @@ void returnToSurface(float *lThrust, float *rThrust, float *tThrust) {
   *rThrust = 0;
   *tThrust = 180;
 }
+
 
 /* FUNCTION: Calculate 0-1000 power scale
  ARG: integer signal from throttle stick vertical
@@ -319,6 +357,7 @@ float getPower(int THsig) {
     
     return (power/1000);
 }
+
 
 /* FUNCTION: Chop signal to between minRange & maxRange
  ARG: integer signal to clean
