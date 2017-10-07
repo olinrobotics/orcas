@@ -12,5 +12,5 @@ Competition.
 
 For more information, navigate to the
 [github wiki](https://github.com/olinrobotics/orcas/wiki) or contact project
-leaders Isaac Vandor at isaac.vandor@students.olin.edu or Connor Novak at
+leaders Christina Segar at christina.segar@students.olin.edu or Connor Novak at
 connor@students.olin.edu.
