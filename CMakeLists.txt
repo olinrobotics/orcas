@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  cv_bridge
 )
 set ( OpenCV_DIR "/usr/local/include/opencv2/")
 # find_package(OpenCV 3.2 REQUIRED)
@@ -91,9 +92,9 @@ set ( OpenCV_DIR "/usr/local/include/opencv2/")
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-generate_dynamic_reconfigure_options(
-   cfg/tractor_cfg.cfg
-)
+# generate_dynamic_reconfigure_options(
+#    cfg/orcas_cfg.cfg   (does not currently exist)
+# )
 
 ###################################
 ## catkin specific configuration ##
@@ -138,11 +139,6 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/tractor_node.cpp)
 
-add_executable( Camera src/camera/Camera.cpp )
-add_executable( Teleop src/teleop/Teleop.cpp )
-add_executable( State src/state/State.cpp )
-add_executable( Waypoint src/Waypoint.cpp )
-
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -157,11 +153,6 @@ add_executable( Waypoint src/Waypoint.cpp )
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-
-target_link_libraries( Camera ${OpenCV_LIBS} ${catkin_LIBRARIES} -lopencv_highgui -lopencv_core )
-target_link_libraries( Teleop ${catkin_LIBRARIES} )
-target_link_libraries( State ${catkin_LIBRARIES} )
-target_link_libraries( Waypoint ${catkin_LIBRARIES} )
 
 #############
 ## Install ##
