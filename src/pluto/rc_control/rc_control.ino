@@ -5,9 +5,11 @@
  */
 
 // Include Libraries
+#include <Servo.h>
 
 // Debug Settings
 boolean DEBUG_MOTORS = false;
+boolean DEBUG = false;
 
 // Declare Variables
 byte LED_BLINK_DELAY;
@@ -20,6 +22,8 @@ void setup() {
   LED_BLINK_DELAY = 500;        // ms
 
   // Set actuators to initial positions
+
+  // Turn on LED positional system
 
   // Start Serial connections
   
@@ -49,8 +53,16 @@ void loop() {
    * Check: E-Stop, Water Sensor, Battery Sensor, Receiver E-Stop, Receiver Connectivity
    */
 
-  /* 
-   * 
+  /* Convert receiver signals into motor commands
+   * Throttle for speed, left stick for yaw
+   */
+
+  /* Convert receiver signals into pump commands
+   *  Right stick for raise/lower
+   */
+
+  /* Update & check LED timer
+   *  See if current time since last blink is greater than blink delay
    */
   
   // ---------- ACT ----------
