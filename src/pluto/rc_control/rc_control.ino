@@ -31,6 +31,8 @@ void loop() {
 
   // Read E-Stop
   // Read Water Sensor
+    int waterSenseRead;
+    int Grove_Water_Sensor = LOW;  
   // Read Depth Sensor
   // Read Accelerometer
   // Read Gyroscope
@@ -40,7 +42,9 @@ void loop() {
   // Read Battery Voltage
   
   // ---------- THINK ----------
-
+  //Read Water Sensor
+   boolean waterSensorState= analogRead(Grove_Water_Sensor);
+    if LOW
   /* Should sub E-Stop?
    * Check: E-Stop, Water Sensor, Battery Sensor, Receiver E-Stop, Receiver Connectivity
    */
@@ -50,7 +54,7 @@ void loop() {
    */
   
   // ---------- ACT ----------
-
+  //Read Water Sensor
   // Write settings to thrusters
   // Write LED settings
   // Write pump settings
