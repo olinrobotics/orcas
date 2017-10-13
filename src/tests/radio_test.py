@@ -4,7 +4,7 @@ import serial
 ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1000)
 
 # Send data (a string)
-ser.write(bytes('Hello, World!', 'utf-8'))
+ser.write(bytes('Hello, World!'))
 
 # Read data
 print('MSG: waiting for data')
