@@ -6,6 +6,7 @@
 
 // Include Libraries
 #include <Servo.h>
+#include <SoftwareSerial.h>
 
 // Debug Settings
 boolean DEBUG_MOTORS = false;
@@ -13,6 +14,7 @@ boolean DEBUG = false;
 
 // Declare Variables
 byte LED_BLINK_DELAY;
+SoftwareSerial XBee(2, 3); // RX, TX
 
 void setup() {
 
@@ -26,6 +28,8 @@ void setup() {
   // Turn on LED positional system
 
   // Start Serial connections
+  XBee.begin(9600);
+  XBee.write("MSG: Testing Connection");
   
 }
 
@@ -36,13 +40,15 @@ void loop() {
   // Read E-Stop
   // Read Water Sensor
     int waterSenseRead;
-    int Grove_Water_Sensor = LOW;  
+    int Grove_Water_Sensor = LOW;
+    
   // Read Depth Sensor
   // Read Accelerometer
   // Read Gyroscope
   // Read Reciever
   // Read Switch
   // Read Radio
+  
   // Read Battery Voltage
   
   // ---------- THINK ----------
