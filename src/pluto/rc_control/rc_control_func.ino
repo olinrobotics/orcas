@@ -3,7 +3,7 @@
  * ARGS: float percentage
  * RTN: none
  */
-def SetThruster() {
+//void SetThruster() {
   
 }
 
@@ -11,15 +11,15 @@ def SetThruster() {
  * ARGS: none
  * RTN: none
  */
- def eStop() {
-  
+ void eStop() {
+   Serial.println("EStop");
  }
 
 /* DESC: toggles running LED & updates state var
  *  ARGS: byte pin, boolean pin_state
  *  RTN: boolean pin_state
  */
- def toggleLED() {
+ // void toggleLED() {
   
- }
+// }
 

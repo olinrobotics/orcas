@@ -6,6 +6,8 @@
 
 // Include Libraries
 #include <Servo.h>
+//#include <rc_control_func.ino>
+const int Grove_Water_Sensor=A4;
 
 // Debug Settings
 boolean DEBUG_MOTORS = false;
@@ -14,18 +16,24 @@ boolean DEBUG = false;
 // Declare Variables
 byte LED_BLINK_DELAY;
 
+// maybe delete if it doesn't work
+int waterSensorReading;
+int waterSensorState;
+
 void setup() {
 
   // Set pin modes
+  pinMode(Grove_Water_Sensor, INPUT);
   
   // Initialize Variables
-  LED_BLINK_DELAY = 500;        // ms
+ // LED_BLINK_DELAY = 500;        // ms
 
   // Set actuators to initial positions
 
   // Turn on LED positional system
 
   // Start Serial connections
+  Serial.begin(9600);
   
 }
 
@@ -35,8 +43,6 @@ void loop() {
 
   // Read E-Stop
   // Read Water Sensor
-    int waterSenseRead;
-    int Grove_Water_Sensor = LOW;  
   // Read Depth Sensor
   // Read Accelerometer
   // Read Gyroscope
@@ -47,8 +53,11 @@ void loop() {
   
   // ---------- THINK ----------
   //Read Water Sensor
-   boolean waterSensorState= analogRead(Grove_Water_Sensor);
-    if LOW
+   int waterSensorReading = analogRead(Grove_Water_Sensor);
+    if (waterSensorReading == 0)
+    {waterSensorState = LOW;}
+    else
+    {waterSensorState= HIGH;}
   /* Should sub E-Stop?
    * Check: E-Stop, Water Sensor, Battery Sensor, Receiver E-Stop, Receiver Connectivity
    */
@@ -67,8 +76,10 @@ void loop() {
   
   // ---------- ACT ----------
   //Read Water Sensor
-  // Write settings to thrusters
+  if (waterSensorState==HIGH)
+  eStop();
+  
+   // Write settings to thrusters
   // Write LED settings
   // Write pump settings
-  
-}
+
