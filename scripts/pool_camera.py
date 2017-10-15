@@ -53,7 +53,7 @@ class PoolCam:
         displays the feed.
         '''
 
-        if image == None:
+        if image is None:
             return
 
         # Feed Display(s):
@@ -64,7 +64,7 @@ class PoolCam:
     def apply_filter(self, image):
         '''
         '''
-        if image == None:
+        if image is None:
             return
 
         blur = cv2.GaussianBlur(image, (5,5), 0) # Gaussian Blur filter
@@ -78,28 +78,28 @@ class PoolCam:
     def contour_feed(self, feed, thresh):
         '''
         '''
-        if self.cv_image == None:
+        if self.cv_image is None:
             return
 
-        contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        _, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
         sub_contours = [contour for contour in contours if cv2.contourArea(contour) > 300 and
                         cv2.contourArea(contour) < 500000]
         circle_contours = [contour for contour in contours if cv2.contourArea(contour) > 300 and
                         cv2.contourArea(contour) < 500000 and
                         len(cv2.approxPolyDP(contour,0.01*cv2.arcLength(contour,True),True)) > 15]
-        for contour in sub_contours:
+        '''for contour in sub_contours:
             rect = cv2.minAreaRect(contour)
-            box = cv2.cv.BoxPoints(rect)
+            box = cv2.boxPoints(rect)
             box = np.int0(box)
-            cv2.drawContours(feed,[box],0,(0,0,255),2)
+            cv2.drawContours(feed,[box],0,(0,0,255),2)'''
         '''rect = cv2.minAreaRect(sub_contours[0])
         box = cv2.boxPoints(rect)
         box = np.int0(box)
         cv2.drawContours(feed,[box],0,(0,0,255),2)'''
 
         cv2.drawContours(feed, sub_contours, -1, (0,255,0), 3)
-        cv2.drawContours(feed, circle_contours, -1, (255,0,0), 3)
+        # cv2.drawContours(feed, circle_contours, -1, (255,0,0), 3)
 
 
 
