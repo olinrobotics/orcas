@@ -1,6 +1,6 @@
 #include <EnableInterrupt.h>
 
-#define SERIAL_PORT_SPEED 57600
+#define SERIAL_PORT_SPEED 9600
 #define RC_NUM_CHANNELS  4
 
 #define RC_CH1  0
@@ -54,6 +54,7 @@ void setup() {
 void loop() {
   rc_read_values();
 
+  Serial.println("Test");
   Serial.print("CH1:"); Serial.print(rc_values[RC_CH1]); Serial.print("\t");
   Serial.print("CH2:"); Serial.print(rc_values[RC_CH2]); Serial.print("\t");
   Serial.print("CH3:"); Serial.print(rc_values[RC_CH3]); Serial.print("\t");
