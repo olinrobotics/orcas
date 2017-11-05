@@ -58,6 +58,7 @@ void setup() {
 
 void loop() {
   rc_read_values();
+<<<<<<< HEAD
   
   inputValue = rc_values[RC_CH1];//read the value from the transmitter
   
@@ -83,5 +84,14 @@ void loop() {
   
   Serial.println(outputValue);
   
+=======
+
+  Serial.println("Test");
+  Serial.print("CH1:"); Serial.print(rc_values[RC_CH1]); Serial.print("\t");
+  Serial.print("CH2:"); Serial.print(rc_values[RC_CH2]); Serial.print("\t");
+  Serial.print("CH3:"); Serial.print(rc_values[RC_CH3]); Serial.print("\t");
+  Serial.print("CH4:"); Serial.println(rc_values[RC_CH4]);
+
+>>>>>>> 7c82698343770e36b64833b0d389666c635e97c0
   delay(200);
 }
