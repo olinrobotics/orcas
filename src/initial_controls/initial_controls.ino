@@ -11,7 +11,7 @@ packet_fst - increase [signal value] (speed up)
 packet_slw - decrease [signal value] (slow down)
 packet_flt - up at [signal value]
 packet_snk - down at [signal value]
-packet_stp - 
+packet_stp -
 */
 
 // XBee's DOUT (TX) is connected to pin 2 (Arduino's Software RX)
@@ -32,8 +32,8 @@ int counter = 0; // counter to determine if it has been too long since we have r
 boolean state = true; // Setting for printing or running
 
 void setup() {
-  
-  
+
+
   servo1.attach(servoPin1);
   servo2.attach(servoPin2);
   servo3.attach(servoPin3);
@@ -51,14 +51,14 @@ void setup() {
   Serial.begin(9600); // opens the serial port
 
   Serial.println("Doing the setup");
-  
+
   XBee.write("TST: Comms to XBee");
 }
 
 void loop() {
 
   counter = counter + 1; // update the counter each time we enter the loop
-  
+
   // Updates corresponding signal (forward vs reverse, etc.)
   if (signal > 1500){
     corresponding_signal = 1500 - (signal-1500);
@@ -69,7 +69,7 @@ void loop() {
   else{
     corresponding_signal = 1500;
   }
-  
+
   // check for incoming data through XBee:
   if (XBee.available()) {
     counter = 0;
@@ -79,7 +79,7 @@ void loop() {
     digitalWrite(12, HIGH);
     delay(pause);
     digitalWrite(12, LOW);
-    
+
     if (inChar == 'f'){
       if (state == true) Serial.println("Going forward");
         XBee.write("Going forward");
@@ -90,7 +90,7 @@ void loop() {
         servo3.writeMicroseconds(stop);
         delay(pause);
     }
-    
+
     else if (inChar == 'l'){
       if (state == true) Serial.println("Going left");
         XBee.write("Going left");
@@ -101,7 +101,7 @@ void loop() {
         servo3.writeMicroseconds(stop);
         delay(pause);
     }
-    
+
     else if (inChar == 'r'){
       if (state == true) Serial.println("Going right");
         XBee.write("Going right");
@@ -112,7 +112,7 @@ void loop() {
         servo3.writeMicroseconds(stop);
         delay(pause);
     }
-    
+
     else if (inChar == 'b'){
       if (state == true) Serial.println("Going backwards");
         XBee.write("Going backwards");
@@ -123,7 +123,7 @@ void loop() {
         servo3.writeMicroseconds(stop);
         delay(pause);
     }
-    
+
     else if (inChar == 't' && signal < 1900){
       signal = signal + 10;
       String strSig = String(signal);
@@ -132,7 +132,7 @@ void loop() {
       if (state == true){Serial.println(msg);
       XBee.write(msg);
     }}
-    
+
     else if (inChar == 's' && signal > 1100){
       signal = signal - 10;
       String strSig = String(signal);
@@ -141,7 +141,7 @@ void loop() {
       if (state == true){Serial.println(msg);
       XBee.write(msg);
     }}
-    
+
     else if (inChar == 'o'){
       if (state == true) Serial.println("Going up");
         XBee.write("Going up");
@@ -152,7 +152,7 @@ void loop() {
         servo3.writeMicroseconds(signal);
         delay(pause);
     }
-    
+
     else if (inChar == 'n'){
       if (state == true) Serial.println("Going down");
         XBee.write("Going down");
@@ -163,7 +163,7 @@ void loop() {
         servo3.writeMicroseconds(corresponding_signal);
         delay(pause);
     }
-    
+
     else if (inChar == 'x'){
       if (state == true) Serial.println("Stopping all motors!");
         XBee.write("Stopping all motors");
