@@ -1,3 +1,10 @@
+#include <Wire.h>
+
+#include <Adafruit_MotorShield.h>
+
+#include <Adafruit_CircuitPlayground.h>
+#include <Adafruit_Circuit_Playground.h>
+
 #include <Wire.h>                                 // I2C Communication with MPU
 #include <Adafruit_MotorShield.h>                 // Motorshield library
 #include "utility/Adafruit_MS_PWMServoDriver.h"   // Lets motor shield talk to motor
