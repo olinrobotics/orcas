@@ -1,0 +1,10 @@
+<launch>
+  <!-- local machine already has a definition by default.
+       This tag overrides the default definition with
+       specific ROS_ROOT and ROS_PACKAGE_PATH values -->
+  <!-- <machine name="local_alt" address="localhost" default="true" ros-root="/u/user/ros/ros/" ros-package-path="/u/user/ros/ros-pkg" /> -->
+  <!-- webcam publisher -->
+  <node name="camera_publisher" pkg="underwater_vision" type="camera_publisher" />
+  <!-- laser line detector -->
+  <node name="laser_detector" pkg="underwater_vision" type="laser_detector" />
+</launch>

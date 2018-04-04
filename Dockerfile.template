@@ -1,0 +1,10 @@
+FROM arm32v7/ros:kinetic-perception
+
+COPY catkin_ws /opt/catkin_ws
+WORKDIR /opt/catkin_ws
+
+RUN source /opt/ros/setup.bash && \
+	cd /opt/catkin_ws && \
+	catkin_make
+
+CMD ["roscore"]
