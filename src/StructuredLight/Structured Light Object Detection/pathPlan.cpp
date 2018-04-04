@@ -1,3 +1,5 @@
+// This doesn't work yet
+
 #include "opencv2/opencv.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -5,7 +7,7 @@
 #include <cmath>
 #include <algorithm>
 
-int array_to_bool ( int occupancy[5], int length ){
+int array_to_bool ( int occupancy[], int length ){
   // occupancy is an array of distance values
   bool bool_array[length];
   int threshold = 30;
@@ -21,7 +23,7 @@ int array_to_bool ( int occupancy[5], int length ){
 }
 
 
-int path_location ( int occupancy[5], int length) {
+int path_location ( int occupancy[], int length) {
   // output the longest sequcne of Trues
   int count = 0, result = 0, location[2];
   for ( int i = 0 ; i < length ; i++ ) {
