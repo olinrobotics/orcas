@@ -1,4 +1,4 @@
-FROM arm32v7/ros:kinetic-perception
+FROM ros:kinetic-perception
 
 WORKDIR /opt/catkin_ws
 
