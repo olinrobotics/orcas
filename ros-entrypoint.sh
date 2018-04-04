@@ -2,7 +2,7 @@
 set -e
 
 # Set up ROS environment
-source "$ROS_INSTALL_DIR/setup.bash"
+source /opt/ros/kinetic/setup.bash
 
 # Single machine configuration
 export ROS_HOSTNAME=localhost
