@@ -34,7 +34,7 @@ int path_location ( int occupancy[], int length) {
       count++;
       if ( result < count ){
         result = count;
-        location[0] = i-count;
+        location[0] = i-count+1;
         location[1] = i;
       }
     }
