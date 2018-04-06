@@ -10,4 +10,4 @@ RUN . /opt/ros/kinetic/setup.sh && \
 
 COPY ./ros-entrypoint.sh .
 
-CMD ["bash", "ros-entrypoint.sh" "roscore"]
+CMD ["bash", "ros-entrypoint.sh", "roscore"]
