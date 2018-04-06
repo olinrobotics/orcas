@@ -13,7 +13,7 @@ cv2.namedWindow('result')
 h,s,v = 100,100,100
 
 # Creating track bar
-cv2.createTrackbar('h', 'result',0,255,nothing)
+cv2.createTrackbar('h', 'result',0,84,nothing)
 cv2.createTrackbar('s', 'result',0,255,nothing)
 cv2.createTrackbar('v', 'result',0,255,nothing)
 
@@ -30,8 +30,10 @@ while(1):
     v = cv2.getTrackbarPos('v','result')
 
     # Normal masking algorithm
-    lower_blue = np.array([0,0,0])
-    upper_blue = np.array([h,s,v])
+    lower_blue = np.array([84 - h,0,0])
+    upper_blue = np.array([84 + h,s,v])
+
+    max_sat = 130
 
     mask = cv2.inRange(hsv,lower_blue, upper_blue)
 

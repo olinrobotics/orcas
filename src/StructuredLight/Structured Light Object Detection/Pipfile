@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 scipy = "*"
+matplotlib = "==2.2.2"
 
 [dev-packages]
 
