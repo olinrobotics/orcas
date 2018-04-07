@@ -1,12 +1,15 @@
+import os.path
+import sys
+
 import cv2
 import numpy as np
 import math
 import scipy.ndimage
 import scipy.optimize
-import os.path
+
 
 # NOTE(danny): these are pretty much the same because the colors are blown out
-# on the webcam
+# on the webcam, and with a filter it doesn't really matter what hue things are
 THEORETICAL_GREEN_HUE = 84  # if we believe in nm -> hsv
 GREEN_LOW = np.array([0, 0, 0])
 GREEN_HIGH = np.array([255, 140, 255])
@@ -36,18 +39,38 @@ DEFAULT_CALIBRATION_DATA = np.array([
 
 
 class DistanceEstimator(object):
-    """  """
+    """
+    Stores the coefficients for estimating the distance from the camera
+    to the laser reflection.
+
+    Has convenience methods for calculating, loading, and saving
+    calibration files with the coefficients.
+    """
     def __init__(self, a, b, c, theta):
         super(DistanceEstimator, self).__init__()
         self.a = a
         self.b = b
         self.c = c
         self.theta = theta
+
+        # only used in the calculate_distances method
         self.slope = math.tan(theta)  # yes, I did do this thank you
 
     def calculate_distances(self, coms):
-        # assuming that the width is the width of the input image (and calibration)
+        """
+        Calculate the distance from the camera to a numpy array of the
+        center of mass of the pixels in each column identified to be part
+        of the laser reflection.
+
+        this could be improved by storing width/height in a calibration file
+        which makes a lot of sense given that the data will only work if the
+        pixel height differences are in the same coordinate space as when
+        calibrated
+        """
+        # assumes that the width of com is the width of the input image
         width = len(coms)
+
+        # TODO(danny): precalculate this
         corrected_coms = coms - np.arange(-width / 2, width / 2) * self.slope
         return self.a + self.b * np.log(corrected_coms - self.c)
 
@@ -111,8 +134,7 @@ class LaserLineDetector(object):
         if os.path.exists(CALIBRATION_PATH):
             self.estimator = DistanceEstimator.load_calibration(CALIBRATION_PATH)
 
-    def step(self):
-        ret, frame = self.cap.read()
+    def step(self, frame):
         self.cur_frame = frame
 
         self.find_laser_coms()
@@ -136,7 +158,7 @@ class LaserLineDetector(object):
 
     def approximate_slope_intercept(self, debug=False):
         """
-        asssuming a flat obstacle parallel to the camera plane
+        assuming a flat obstacle parallel to the camera plane
         finds the angle of the laser
 
         needs frame and coms
@@ -190,7 +212,8 @@ class LaserLineDetector(object):
         print('otherwise let the magic happen')
 
         while(True):
-            self.step()
+            ret, frame = self.cap.read()
+            self.step(frame)
 
             self.draw_laser_coms()
             self.draw_intercept()
@@ -220,6 +243,7 @@ class LaserLineDetector(object):
         self.cap.release()
         cv2.destroyAllWindows()
 
+
 def get_laser_coms_from_mask(mask):
     rows, cols = mask.shape
     center_of_masses = np.zeros(cols)
@@ -237,17 +261,6 @@ def get_average_laser_px(center_of_masses):
 
     return mean_laser_px
 
-def get_contours(img, mask):
-    # contours processing
-    (_, contours, _) = cv2.findContours(mask.copy(), cv2.RETR_LIST, 1)
-    for c in contours:
-        area = cv2.contourArea(c)
-        if area < 8: continue
-        epsilon = 0.1 * cv2.arcLength(c, True) # tricky smoothing to a single line
-        approx = cv2.approxPolyDP(c, epsilon, True)
-        cv2.drawContours(img, [approx], -1, [255, 255, 255], -1)
-    return img
-
 def find_laser_line_mask(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -263,10 +276,15 @@ def find_laser_line_mask(img):
         cv2.rectangle(mask, (0, 0), (cols // 5, rows), (0, 0, 0), -1)
         cv2.rectangle(mask, (cols - (cols // 5), 0), (cols, rows), (0, 0, 0), -1)
 
-
     return mask
 
 
 if __name__ == '__main__':
-    # DistanceEstimator.find_calibration(DEFAULT_CALIBRATION_DATA).save()
-    LaserLineDetector(camera='test-table-stuff.mp4').run_windowed()
+    if len(sys.argv) != 2:
+        print('usage: python laser_distance_estimator.py <opencv_camera_id/path_to_video>')
+        exit(1)
+    try:
+        camera_id = int(sys.argv[1])
+    except ValueError:
+        camera_id = sys.argv[1]
+    LaserLineDetector(camera=camera_id).run_windowed()
