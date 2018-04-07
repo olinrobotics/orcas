@@ -84,7 +84,7 @@ class DistanceEstimator(object):
         print('saved to {}'.format(path))
 
     @staticmethod
-    def find_calibration(calibration_data, save=True, show=False):
+    def find_calibration(calibration_data, show=False):
         # distance (cm), slope (px/px), intercept (px)
 
         avg_theta = np.mean(np.arctan(calibration_data[:, 1]))
