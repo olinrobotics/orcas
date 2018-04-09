@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>underwater_vision</name>
+  <name>olin_pathfinder</name>
   <version>0.0.0</version>
   <description>The underwater_vision package</description>
 
