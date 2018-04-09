@@ -5,4 +5,4 @@ pushd catkin_ws
 docker-compose up -d
 popd
 
-docker exec -it robosyscv_app_1 /bin/bash
+docker exec -it catkinws_app_1 /bin/bash

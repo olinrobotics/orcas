@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  sensor_msgs
   image_transport
   cv_bridge
   OpenCV
@@ -126,10 +127,6 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )
-
-add_executable(motion src/motion.cpp)
-target_link_libraries(motion ${OpenCV_LIBRARIES})
-add_dependencies(motion ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(camera_publisher src/camera_publisher.cpp)
 target_link_libraries(camera_publisher ${catkin_LIBRARIES})

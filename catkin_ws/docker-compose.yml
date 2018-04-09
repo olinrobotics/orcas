@@ -7,9 +7,7 @@ services:
     environment:
      - DISPLAY=${HOSTNAME}:0
     volumes:
-     - "build:/root/catkin_ws/build"
-     - "devel:/root/catkin_ws/devel"
-     - "src:/root/catkin_ws/src"
-     - ".ros:/root/catkin_ws/.ros"
-     - ".catkin_workspace:/root/catkin_ws/"
+     - "./src:/opt/catkin_ws/src"
+     - "./test_data:/opt/catkin_ws/test_data"
+     - "./.catkin_workspace:/opt/catkin_ws/.catkin_workspace"
      - "/tmp/.X11-unix:/tmp/.X11-unix"

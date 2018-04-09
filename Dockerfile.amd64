@@ -4,12 +4,11 @@ WORKDIR /opt/catkin_ws
 
 COPY catkin_ws/src ./src
 COPY catkin_ws/.catkin_workspace ./.catkin_workspace
+COPY catkin_ws/test_data ./test_data
 
 RUN . /opt/ros/kinetic/setup.sh && \
 	catkin_make
 
 COPY ./ros-entrypoint.sh .
 
-ENTRYPOINT ["bash", "ros-entrypoint.sh"]
-
-CMD ["roscore"]
+CMD ["bash", "ros-entrypoint.sh", "roscore"]

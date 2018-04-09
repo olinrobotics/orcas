@@ -1,0 +1,6 @@
+<launch>
+  <!-- webcam publisher -->
+  <node name="camera_publisher" pkg="underwater_vision" type="camera_publisher" args="/opt/catkin_ws/test_data/water.mp4" />
+  <!-- laser line detector -->
+  <node name="laser_ranger" pkg="underwater_vision" type="laser_ranger.py" />
+</launch>
