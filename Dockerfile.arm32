@@ -3,8 +3,7 @@ FROM arm32v7/ros:kinetic-perception
 WORKDIR /opt/catkin_ws
 
 RUN apt-get update && \
-	apt-get install python-pip -yq && \
-	pip install scipy && \
+	apt-get install python-scipy -yq && \
 	apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY catkin_ws/src ./src
