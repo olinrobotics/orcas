@@ -1,6 +1,6 @@
 <launch>
   <!-- webcam publisher -->
-  <node name="camera_publisher" pkg="underwater_vision" type="camera_publisher" />
+  <node name="camera_publisher" pkg="underwater_vision" type="camera_publisher" args="0" />
   <!-- laser line detector -->
-  <node name="laser_detector" pkg="underwater_vision" type="laser_detector" />
+  <node name="laser_ranger" pkg="underwater_vision" type="laser_ranger.py" />
 </launch>
