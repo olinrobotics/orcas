@@ -11,3 +11,5 @@ g++ laser_calibrate.cpp $(pkg-config --libs opencv) -o calib -pthread -std=c++11
 g++ motion.cpp $(pkg-config --libs opencv) -o motion
 
 NOTE: You need to have OpenCV installed in order to run both scripts.
+
+NOTE(danny): removing binaries from the git repo, moved lots of stuff to graveyard
