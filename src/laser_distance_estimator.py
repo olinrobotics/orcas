@@ -212,7 +212,7 @@ class LaserLineDetector(object):
         ))
         print('otherwise let the magic happen')
 
-        while(True):
+        while True:
             ret, frame = self.cap.read()
             self.step(frame)
 

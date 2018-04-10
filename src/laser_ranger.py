@@ -15,6 +15,8 @@ from laser_distance_estimator import LaserLineDetector
 CAMERA_H_FOV = 64.4  # degrees
 CAMERA_H_PX = 1280  # px
 
+USE_CV_BRIDGE = False
+
 class LaserRanger(object):
 
     def __init__(self):
@@ -22,18 +24,27 @@ class LaserRanger(object):
 
         self.scan_pub = rospy.Publisher("structured_light_scan", LaserScan, queue_size=10)
 
-        self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("camera/image", Image, self.on_image)
+        if USE_CV_BRIDGE:
+            self.bridge = CvBridge()
+            self.image_sub = rospy.Subscriber("camera/image", Image, self.on_image)
+        else:
+            self.cap = cv2.VideoCapture(self.camera_id)
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH,10000)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT,10000)
 
         self.ll = LaserLineDetector(camera=None)
 
     def on_image(self, data):
-        try:
-            cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-        except CvBridgeError as e:
-            print(e)
+        if USE_CV_BRIDGE:
+            try:
+                cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            except CvBridgeError as e:
+                print(e)
+                return
+        else:
+             ret, cv_image = self.cap.read()
 
-        (rows,cols,channels) = cv_image.shape
+        (rows, cols, channels) = cv_image.shape
         if cols > 60 and rows > 60 :
             cv2.circle(cv_image, (50,50), 10, 255)
 
