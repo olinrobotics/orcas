@@ -1,6 +1,7 @@
 # RoboSys CV project
 
 ### Notes
+These are now outdated.
 
 `docker pull ros:kinetic`
 `docker run -it --name ros_workspace ros:kinetic`

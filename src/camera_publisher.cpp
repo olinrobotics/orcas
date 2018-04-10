@@ -24,8 +24,8 @@ int main(int argc, char** argv)
     cap = cv::VideoCapture(video_source);
 
     // set to maximum resolution possible (was getting 640x480)
-    cap.set(CV_CAP_PROP_FRAME_WIDTH,10000);
-    cap.set(CV_CAP_PROP_FRAME_HEIGHT,10000);
+    cap.set(CV_CAP_PROP_FRAME_WIDTH, 10000);
+    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 10000);
   } else {
     std::string first_arg(argv[1]);
     ROS_INFO("Using video source from file %s", first_arg.c_str());
