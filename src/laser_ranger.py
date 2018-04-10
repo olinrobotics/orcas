@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 import roslib
-roslib.load_manifest('underwater_vision')
+roslib.load_manifest('olin_pathfinder')
 import sys
 import rospy
 import cv2
