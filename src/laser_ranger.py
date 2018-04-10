@@ -15,16 +15,17 @@ from laser_distance_estimator import LaserLineDetector
 CAMERA_H_FOV = 64.4  # degrees
 CAMERA_H_PX = 1280  # px
 
-USE_CV_BRIDGE = False
 
 class LaserRanger(object):
 
-    def __init__(self):
+    def __init__(self, camera_id):
         rospy.init_node('laser_ranger')
 
         self.scan_pub = rospy.Publisher("structured_light_scan", LaserScan, queue_size=10)
+        self.cap = None
+        self.camera_id = camera_id
 
-        if USE_CV_BRIDGE:
+        if self.camera_id is None:
             self.bridge = CvBridge()
             self.image_sub = rospy.Subscriber("camera/image", Image, self.on_image)
         else:
@@ -35,14 +36,14 @@ class LaserRanger(object):
         self.ll = LaserLineDetector(camera=None)
 
     def on_image(self, data):
-        if USE_CV_BRIDGE:
+        if self.camera_id is None:
             try:
                 cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
             except CvBridgeError as e:
                 print(e)
                 return
         else:
-             ret, cv_image = self.cap.read()
+            ret, cv_image = self.cap.read()
 
         (rows, cols, channels) = cv_image.shape
         if cols > 60 and rows > 60 :
@@ -69,11 +70,21 @@ class LaserRanger(object):
         )
 
 def main(args):
-    ic = LaserRanger()
+    if len(args) == 1:
+        try:
+            camera_id = int(sys.argv[1])
+        except ValueError:
+            camera_id = sys.argv[1]
+    else:
+        camera_id = None
+
+    ic = LaserRanger(camera_id=camera_id)
     try:
         rospy.spin()
     except KeyboardInterrupt:
         print("Shutting down")
+        if ic.cap is not None:
+            ic.cap.release()
 
 if __name__ == '__main__':
     main(sys.argv)
