@@ -2,7 +2,7 @@
 set -e
 
 # Set up ROS environment
-#source /opt/ros/kinetic/setup.bash
+source /opt/catkin_ws/devel/setup.bash
 
 # Single machine configuration
 export ROS_HOSTNAME=localhost

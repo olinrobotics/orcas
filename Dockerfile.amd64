@@ -6,13 +6,9 @@ RUN apt-get update && \
 	apt-get install python-scipy -yq && \
 	apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY catkin_ws/src ./src
-COPY catkin_ws/.catkin_workspace ./.catkin_workspace
-COPY catkin_ws/test_data ./test_data
+COPY . src/robosys-cv
 
 RUN . /opt/ros/kinetic/setup.sh && \
 	catkin_make
-
-COPY ./ros-entrypoint.sh .
 
 CMD ["bash", "ros-entrypoint.sh", "roscore"]
