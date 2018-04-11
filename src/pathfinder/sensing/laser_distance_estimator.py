@@ -4,8 +4,6 @@ import sys
 import cv2
 import numpy as np
 import math
-import scipy.ndimage
-import scipy.optimize
 
 
 # NOTE(danny): these are pretty much the same because the colors are blown out
@@ -85,6 +83,7 @@ class DistanceEstimator(object):
 
     @staticmethod
     def find_calibration(calibration_data, show=False):
+        import scipy.optimize  # delayed import because it's not usually necessary
         # distance (cm), slope (px/px), intercept (px)
 
         avg_theta = np.mean(np.arctan(calibration_data[:, 1]))
@@ -245,6 +244,7 @@ class LaserLineDetector(object):
 
 
 def get_laser_coms_from_mask(mask):
+    import scipy.ndimage  # delayed import because it's not usually necessary
     rows, cols = mask.shape
     center_of_masses = np.zeros(cols)
     for col in range(cols):

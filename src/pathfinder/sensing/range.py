@@ -6,6 +6,7 @@ cap = cv2.VideoCapture(1)
 
 def nothing(x):
     pass
+
 # Creating a window for later use
 cv2.namedWindow('result')
 
@@ -17,7 +18,7 @@ cv2.createTrackbar('h', 'result',0,84,nothing)
 cv2.createTrackbar('s', 'result',0,255,nothing)
 cv2.createTrackbar('v', 'result',0,255,nothing)
 
-while(1):
+while True:
 
     _, frame = cap.read()
 
@@ -35,9 +36,9 @@ while(1):
 
     max_sat = 130
 
-    mask = cv2.inRange(hsv,lower_blue, upper_blue)
+    mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
-    result = cv2.bitwise_and(frame,frame,mask = mask)
+    result = cv2.bitwise_and(frame, frame, mask = mask)
 
     cv2.imshow('result',result)
 
