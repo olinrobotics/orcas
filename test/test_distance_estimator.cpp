@@ -1,8 +1,8 @@
-#include "pathfinder/distance_estimator.h"
-#include "ros/ros.h"
-
+#include <ros/ros.h>
 #include <gtest/gtest.h>
 #include <iostream>
+
+#include "pathfinder/distance_estimator.h"
 
 TEST(DistanceEstimator, works){
     DistanceEstimator de(1.0, 2.0, 3.0, 0.0);
@@ -14,6 +14,7 @@ TEST(DistanceEstimator, works){
     }
 
     de.CalculateDistances(scan);
+    // check equal to python implementation output
     EXPECT_FLOAT_EQ(12.0187767, scan.ranges[0]);
 }
 
