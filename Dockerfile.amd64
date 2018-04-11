@@ -11,4 +11,6 @@ COPY . src/orcas
 RUN . /opt/ros/kinetic/setup.sh && \
 	catkin_make
 
-CMD ["bash", "./src/orcas/ros-entrypoint.sh", "roslaunch", "orcas", "test_cpp_water_data.launch"]
+ENTRYPOINT ["bash", "./src/orcas/ros-entrypoint.sh"]
+
+CMD ["roslaunch", "orcas", "pathfinder_cpp_test.launch"]
