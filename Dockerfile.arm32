@@ -1,0 +1,14 @@
+FROM arm32v7/ros:kinetic-perception
+
+WORKDIR /opt/catkin_ws
+
+RUN apt-get update && \
+	apt-get install python-scipy -yq && \
+	apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY . src/robosys-cv
+
+RUN . /opt/ros/kinetic/setup.sh && \
+	catkin_make
+
+CMD ["bash", "./src/robosys-cv/ros-entrypoint.sh", "roslaunch", "olin_pathfinder", "test_cpp_water_data.launch"]

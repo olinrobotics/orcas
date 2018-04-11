@@ -1,5 +1,3 @@
-.DS_Store
-.ros/
 devel/
 logs/
 build/
@@ -52,4 +50,5 @@ qtcreator-*
 # Catkin custom files
 CATKIN_IGNORE
 
-.bash_history
+.DS_Store
+.ros/

@@ -1,7 +1,12 @@
+"""
+Hackable script to find threshold values.
+NOTE(danny): Saved because I've needed code like this so many times
+"""
+
 import cv2
 import numpy as np
 
-
+# NOTE(danny): camera id goes here (or video file path)
 cap = cv2.VideoCapture(1)
 
 def nothing(x):
@@ -11,18 +16,17 @@ def nothing(x):
 cv2.namedWindow('result')
 
 # Starting with 100's to prevent error while masking
-h,s,v = 100,100,100
+h, s, v = 100, 100, 100
 
 # Creating track bar
-cv2.createTrackbar('h', 'result',0,84,nothing)
-cv2.createTrackbar('s', 'result',0,255,nothing)
-cv2.createTrackbar('v', 'result',0,255,nothing)
+cv2.createTrackbar('h', 'result', 0, 84, nothing)
+cv2.createTrackbar('s', 'result', 0, 255, nothing)
+cv2.createTrackbar('v', 'result', 0, 255, nothing)
 
 while True:
-
     _, frame = cap.read()
 
-    #converting to HSV
+    # converting to HSV
     hsv = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
 
     # get info from track bar and appy to result

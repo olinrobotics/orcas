@@ -4,6 +4,7 @@ import sys
 import cv2
 import numpy as np
 import math
+import scipy.ndimage
 
 
 # NOTE(danny): these are pretty much the same because the colors are blown out
@@ -14,7 +15,11 @@ GREEN_HIGH = np.array([255, 140, 255])
 RED_LOW = np.array([0, 0, 0])
 RED_HIGH = np.array([255, 130, 255])
 
-CALIBRATION_PATH = 'calibration.txt'
+# Path to calibration file, written and read by this, read by laser_ranger.cpp
+CALIBRATION_PATH = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    '../data/calibration.txt'
+)
 
 # Chop off the top 1/3 of the image, where the laser line should never be
 CHOP_OFF_TOP = True
@@ -22,6 +27,7 @@ CHOP_OFF_TOP = True
 # this just cuts off the first and last fifths of the image in the mask
 CHOP_OFF_SIDES = True
 
+# Keeping original calibration data for debugging purposes
 # distance (cm), slope (px/px), intercept (px)
 DEFAULT_CALIBRATION_DATA = np.array([
     [10.0, 0.08375113961068108, 613.8094457107748],
@@ -128,6 +134,7 @@ class LaserLineDetector(object):
         self.cur_frame = None  # cv input frame (drawn upon late in loop)
         self.cur_mask = None
         self.cur_coms = None  # center of mass detections per column
+        self.cur_distances = None
 
         self.estimator = None
         if os.path.exists(CALIBRATION_PATH):
@@ -189,6 +196,8 @@ class LaserLineDetector(object):
 
     def find_distances(self):
         if self.estimator is None:
+            sys.stderr.write('Estimator not initialized!\n')
+            sys.stderr.flush()
             return
 
         dists = self.estimator.calculate_distances(self.cur_coms)
@@ -210,7 +219,7 @@ class LaserLineDetector(object):
         ))
         print('otherwise let the magic happen')
 
-        while(True):
+        while True:
             ret, frame = self.cap.read()
             self.step(frame)
 
@@ -244,7 +253,6 @@ class LaserLineDetector(object):
 
 
 def get_laser_coms_from_mask(mask):
-    import scipy.ndimage  # delayed import because it's not usually necessary
     rows, cols = mask.shape
     center_of_masses = np.zeros(cols)
     for col in range(cols):
