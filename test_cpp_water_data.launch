@@ -1,0 +1,5 @@
+<launch>
+  <!-- laser line detector, cpp edition -->
+  <node name="laser_ranger_cpp" pkg="olin_pathfinder" type="laser_line_detector" />
+  <node name="hz" pkg="rostopic" type="rostopic" args="hz /structured_light_scan" output="screen" />
+</launch>
