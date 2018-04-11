@@ -40,7 +40,6 @@ DistanceEstimator::DistanceEstimator(std::string calibration_path) {
     std::cerr << "theta: " << theta_ << "\n";
 }
 
-
 void DistanceEstimator::CalculateDistances(
         sensor_msgs::LaserScan &laser_scan) {
     // use a laser scan, populate the ranges field
