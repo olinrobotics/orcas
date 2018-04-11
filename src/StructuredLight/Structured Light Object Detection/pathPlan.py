@@ -40,4 +40,4 @@ def rudder_pos(loc_array):
 
 length = 10
 test = [70, 60, 50, 10, 70, 60, 50, 50, 50, 70]
-rudder_pos(path_location(test))
+print (rudder_pos(path_location(test)))
