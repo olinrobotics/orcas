@@ -1,4 +1,5 @@
 #include "laser_line_detector.h"
+#include <ros/package.h>
 
 using namespace cv;
 
@@ -12,8 +13,7 @@ bool CHOP_OFF_SIDES = true;  // usually garbage data
 const float CAMERA_H_FOV = 64.4f;  // degrees
 const unsigned int CAMERA_H_PX = 1280;  // px
 
-LaserLineDetector::LaserLineDetector() : distance_estimator_(90.8170192922184f, -15.60448606032729f,
-                                                             432.79093297611286f, 0.09326753247757161f),
+LaserLineDetector::LaserLineDetector(std::string calibration_file) : distance_estimator_(calibration_file),
                                          nh_(),
                                          pub_(nh_.advertise<sensor_msgs::LaserScan>("structured_light_scan", 10)) {
 }
@@ -95,14 +95,21 @@ std::unique_ptr<sensor_msgs::LaserScan> LaserLineDetector::FindLaserCOMs(const M
 int main(int argc, char **argv) {
     ros::init(argc, argv, "laser_detector");
     ros::NodeHandle nh;
-    LaserLineDetector ll;
     Mat frame;
 
-    std::string filename = "/opt/catkin_ws/src/robosys-cv/test_data/water.mp4";
-    VideoCapture capture(filename);
+    // find the package root
+    std::string pkg_path = ros::package::getPath("olin_pathfinder");
+    std::string video_path = pkg_path + "/test_data/water.mp4";
+
+    std::string calibration_path = pkg_path + "/data/calibration.txt";
+
+    LaserLineDetector ll(calibration_path);
+
+    VideoCapture capture(video_path);
 
     if (!capture.isOpened()) {
         std::cerr << "Can't find file\n";
+        std::cerr << video_path + "\n";
         char buff[FILENAME_MAX];
         getcwd(buff, FILENAME_MAX);
         std::cerr << buff;

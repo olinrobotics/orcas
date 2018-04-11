@@ -10,7 +10,7 @@ using namespace cv;
 
 class LaserLineDetector {
 public:
-    LaserLineDetector();
+    LaserLineDetector(std::string calibration_file);
 
     bool Step(const Mat& frame);
 
