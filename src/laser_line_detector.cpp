@@ -12,17 +12,23 @@ bool CHOP_OFF_SIDES = true;  // usually garbage data
 const float CAMERA_H_FOV = 64.4f;  // degrees
 const unsigned int CAMERA_H_PX = 1280;  // px
 
-LaserLineDetector::LaserLineDetector() : distance_estimator_(90.8170192922184f,-15.60448606032729f,432.79093297611286f, 0.0f) {
+LaserLineDetector::LaserLineDetector() : distance_estimator_(90.8170192922184f, -15.60448606032729f,
+                                                             432.79093297611286f, 0.09326753247757161f),
+                                         nh_(),
+                                         pub_(nh_.advertise<sensor_msgs::LaserScan>("structured_light_scan", 10)) {
 }
 
 bool LaserLineDetector::Step(const Mat &frame) {
     Mat laser_mask = FindLaserMask(frame);
-    std::unique_ptr<sensor_msgs::LaserScan> laser_coms = FindLaserCOMs(laser_mask);
+    // populate initial laser scan object
+    std::unique_ptr<sensor_msgs::LaserScan> laser_scan = FindLaserCOMs(laser_mask);
 
-    auto intensities = laser_coms->intensities;
-    for (float intensity : intensities) {
-        std::cout << intensity << ", ";
-    }
+    // fill out the scan ranges
+    distance_estimator_.CalculateDistances(*laser_scan);
+
+    // publish filled out scan message
+    pub_.publish(*laser_scan);
+
     return true;
 }
 
@@ -53,9 +59,9 @@ std::unique_ptr<sensor_msgs::LaserScan> LaserLineDetector::FindLaserCOMs(const M
     ros::Time scan_time = ros::Time::now();
     scan.header.stamp = scan_time;
     scan.header.frame_id = "webcam_frame";
-    scan.angle_min = - CAMERA_H_FOV / 2.0f;
+    scan.angle_min = -CAMERA_H_FOV / 2.0f;
     scan.angle_max = CAMERA_H_FOV / 2.0f;
-    scan.angle_increment = CAMERA_H_FOV / (float)CAMERA_H_PX;
+    scan.angle_increment = CAMERA_H_FOV / (float) CAMERA_H_PX;
     scan.range_min = 0.0f;
     scan.range_max = 1000.0f;
 
@@ -71,13 +77,13 @@ std::unique_ptr<sensor_msgs::LaserScan> LaserLineDetector::FindLaserCOMs(const M
         int total_mass = 0;  // mass
         int total_mass_weighted = 0;  // mass * position
         for (int j = 0; j < mask.rows; j++) {
-            unsigned char g = input[(int)mask.step * j + i];  // gray
+            unsigned char g = input[(int) mask.step * j + i];  // gray
             total_mass_weighted += j * g;
             total_mass += g;
         }
         if (total_mass > 0) {
             // calculate center of mass position
-            scan.intensities[i] = (float)total_mass_weighted / total_mass;
+            scan.intensities[i] = (float) total_mass_weighted / total_mass;
         } else {
             scan.intensities[i] = 0.0f;
         }
@@ -108,7 +114,6 @@ int main(int argc, char **argv) {
         if (frame.empty()) {
             break;
         }
-        std::cout << "step\n";
         ll.Step(frame);
     }
 

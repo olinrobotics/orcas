@@ -19,4 +19,6 @@ public:
 
 private:
     DistanceEstimator distance_estimator_;
+    ros::NodeHandle nh_;
+    ros::Publisher pub_;
 };
