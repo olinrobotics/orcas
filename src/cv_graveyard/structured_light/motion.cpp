@@ -1,3 +1,4 @@
+#include "opencv2/opencv.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
@@ -238,12 +239,12 @@ int main(int argc, char** argv){
 
 					//Puts distance and bearings on the overlay screen
 					char text[255];
-					sprintf(text, "D1: %d cm", distance_x3);
+					//sprintf(text, "D1: %d cm", distance_x3);
 					putText(overlay_color, text, Point(values[s + 1] + 10, values[s] + 30),
 	    								FONT_HERSHEY_COMPLEX_SMALL, 0.5, Scalar(200,200,250), 1, CV_AA);
 
 					char text2[255];
-					sprintf(text2, "B: %2f, %2f", bearing_left, bearing_right);
+					//sprintf(text2, "B: %2f, %2f", bearing_left, bearing_right);
 					putText(overlay_color, text2, Point(values[s + 1] + 10, values[s] + 40),
 	    								FONT_HERSHEY_COMPLEX_SMALL, 0.5, Scalar(200,200,250), 1, CV_AA);
 
@@ -251,18 +252,36 @@ int main(int argc, char** argv){
 					Point curve_range;
 
 					std::cout << bearing_left << std::endl;
+
+					int occupancy_array[100];
+
 					for (int i = 0; i < grid_blocks.size(); ++i){
+						// 15 by 30 grid
 						//Checks if distance and range are within the ranges pre-defined, if so, makes blocks yellow
 						if (range_check(distance_x3, grid_blocks[i].distance_range.x, grid_blocks[i].distance_range.y) &&
 								range_check(bearing_left, grid_blocks[i].angle_range.x, grid_blocks[i].angle_range.y)){
 							grid_blocks[i].change_occupancy();
 							curve_range.x = i;
+							occupancy_array[i] = 2; // 1 means the block is occupied or true
+							// need buffer values - better way to do this?
+							occupancy_array[i+30] = 1;
+							occupancy_array[i-30] = 1;
+							int fprintf(occupancy_array[i]);
 						}
 
 						else if (range_check(distance_x3, grid_blocks[i].distance_range.x, grid_blocks[i].distance_range.y) &&
 								range_check(bearing_right, grid_blocks[i].angle_range.x, grid_blocks[i].angle_range.y)){
 							grid_blocks[i].change_occupancy();
 							curve_range.y = i;
+							occupancy_array[i] = 2; // 1 means the block is occupied or true
+							occupancy_array[i+30] = 1;
+							occupancy_array[i-30] = 1;
+							int fprintf(occupancy_array[i]);
+						}
+
+						else {
+							occupancy_array[i] = 0; // 0 means the block is not occupied
+							int fprintf(occupancy_array[i]);
 						}
 					}
 
@@ -291,7 +310,7 @@ int main(int argc, char** argv){
 
 			//Prints max distance
 			char text1[255];
-			sprintf(text1, "Closest %d cm", total_max);
+			//sprintf(text1, "Closest %d cm", total_max);
 			putText(overlay, text1, Point(image_size.width -150, border+20),
     			FONT_HERSHEY_COMPLEX_SMALL, 0.8, Scalar(200,200,250), 1, CV_AA);
 
@@ -310,14 +329,14 @@ int main(int argc, char** argv){
 			//Labels axis
 			for (int i = 0; i < 15; i++){
 				char text1[255];
-				sprintf(text1, "%d", i*5);
+				//sprintf(text1, "%d", i*5);
 				putText(occupancy_grid_border, text1, Point(border + 3, border - 17 + 35*(15-i)),
     				FONT_HERSHEY_COMPLEX_SMALL, 0.6, Scalar(200, 200, 0), 1, CV_AA);
 			}
 
 			for (int i = 0; i < 30; i++){
 				char text1[255];
-				sprintf(text1, "%d", -120 + i*8);
+				//sprintf(text1, "%d", -120 + i*8);
 				putText(occupancy_grid_border, text1, Point(border + 3 + 35*i, border+ 35*15),
     				FONT_HERSHEY_COMPLEX_SMALL, 0.6, Scalar(200,200, 0), 1, CV_AA);
 			}
