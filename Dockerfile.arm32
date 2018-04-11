@@ -11,4 +11,4 @@ COPY . src/robosys-cv
 RUN . /opt/ros/kinetic/setup.sh && \
 	catkin_make
 
-CMD ["bash", "ros-entrypoint.sh", "roscore"]
+CMD ["bash", "./ros-entrypoint.sh", "roscore"]

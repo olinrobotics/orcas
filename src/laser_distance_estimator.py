@@ -15,7 +15,7 @@ GREEN_HIGH = np.array([255, 140, 255])
 RED_LOW = np.array([0, 0, 0])
 RED_HIGH = np.array([255, 130, 255])
 
-CALIBRATION_PATH = 'src/robosys-cv/src/calibration.txt'
+CALIBRATION_PATH = '/opt/catkin_ws/src/robosys-cv/src/calibration.txt'
 
 # Chop off the top 1/3 of the image, where the laser line should never be
 CHOP_OFF_TOP = True
@@ -191,6 +191,8 @@ class LaserLineDetector(object):
 
     def find_distances(self):
         if self.estimator is None:
+            sys.stderr.write('Estimator not initialized!\n')
+            sys.stderr.flush()
             return
 
         dists = self.estimator.calculate_distances(self.cur_coms)

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(olin_pathfinder)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -110,8 +110,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES underwater_vision
+  INCLUDE_DIRS include
+  LIBRARIES olin_pathfinder
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
@@ -123,27 +123,33 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )
 
+## Declare a C++ library
+add_library(${PROJECT_NAME}
+   src/distance_estimator.cpp
+)
+
 add_executable(camera_publisher src/camera_publisher.cpp)
-target_link_libraries(camera_publisher ${catkin_LIBRARIES})
+target_link_libraries(camera_publisher ${catkin_LIBRARIES} ${PROJECT_NAME})
 add_dependencies(camera_publisher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(laser_detector src/laser_detector.cpp)
-target_link_libraries(laser_detector ${catkin_LIBRARIES})
+target_link_libraries(laser_detector ${catkin_LIBRARIES} ${PROJECT_NAME})
 add_dependencies(laser_detector ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/underwater_vision.cpp
-# )
+
+add_executable(laser_line_detector src/laser_line_detector.cpp)
+target_link_libraries(laser_line_detector ${catkin_LIBRARIES} ${PROJECT_NAME})
+add_dependencies(laser_line_detector ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
@@ -205,10 +211,10 @@ add_dependencies(laser_detector ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXP
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_underwater_vision.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+catkin_add_gtest(${PROJECT_NAME}-test test/test_distance_estimator.cpp)
+if(TARGET ${PROJECT_NAME}-test)
+    target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
