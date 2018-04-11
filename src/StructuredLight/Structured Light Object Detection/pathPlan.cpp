@@ -1,6 +1,6 @@
-// This doesn't work yet  . .
+// Functional but not correct
 
-#include "opencv2/opencv.hpp"
+//#include "opencv2/opencv.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include <stdio.h>
@@ -14,7 +14,7 @@ using namespace std;
 
 // output the longest sequence of Trues
 int *path_location (int range_array[]) {
-  
+
   int count = 0;
   int longest_pos = 0;
   int threshold = 40;
@@ -44,12 +44,12 @@ int *path_location (int range_array[]) {
 
   // finds center point based on location_range
   int center_point = (location_range[0] + location_range[1])/2.0;
-  
+
   // returns center_point and length
   int * returnArray = (int *) malloc(2*sizeof(int));
   returnArray[0] = center_point;
   returnArray[1] = length;
-  
+
   return returnArray;
 }
 
@@ -73,10 +73,10 @@ int main () {
 
 	int length = 10;
 	int test[] = {70, 60, 50, 10, 70, 60, 50, 50, 50, 70};
-	//int *ptr = path_location(test);
-	//cout<<ptr[0]<<" "<<ptr[1];
-	//int arr[] = {ptr[1], ptr[2]};
-	//int x = rudder_pos(arr);
-	//cout << x << " " << endl;
+	int *ptr = path_location(test);
+	cout<<ptr[0]<<" "<<ptr[1];
+	int arr[] = {ptr[1], ptr[2]};
+	int x = rudder_pos(arr);
+	cout << x << " " << endl;
 	return 0;
 }
