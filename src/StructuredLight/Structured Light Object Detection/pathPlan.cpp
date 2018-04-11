@@ -1,4 +1,4 @@
-// Functional but not correct
+// It is working correctly now!! yay!
 
 //#include "opencv2/opencv.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -13,13 +13,12 @@
 using namespace std;
 
 // output the longest sequence of Trues
-int *path_location (int range_array[]) {
+double *path_location (int range_array[], int length) {
 
   int count = 0;
   int longest_pos = 0;
   int threshold = 40;
   int location_range[] = {0, 0};
-  int length = sizeof(range_array)/sizeof(*range_array);
 
   // finds the longest sequence
   for (int i = 0 ; i < length; i++) {
@@ -43,10 +42,10 @@ int *path_location (int range_array[]) {
   }
 
   // finds center point based on location_range
-  int center_point = (location_range[0] + location_range[1])/2.0;
+  double center_point = (location_range[0] + location_range[1])/2.0;
 
   // returns center_point and length
-  int * returnArray = (int *) malloc(2*sizeof(int));
+  double * returnArray = (double *) malloc(2*sizeof(double));
   returnArray[0] = center_point;
   returnArray[1] = length;
 
@@ -55,14 +54,14 @@ int *path_location (int range_array[]) {
 
 
 // performs calculations to find the rudder positions
-int rudder_pos(int loc_array[]) {
-	int location = loc_array[0];
+int rudder_pos(double loc_array[]) {
+	double location = loc_array[0];
 	int length = loc_array[1];
-	int slope = 30/(length/2.0);
-	int intercept = -30.0;
-	int position = ((slope*location) + intercept) + 90.0;
+	double slope = 30/(length/2.0);
+	double intercept = -30.0;
+	double position = ((slope*location) + intercept) + 90.0;
 
-	return position;
+	return int(position);
 }
 
 int main () {
@@ -71,12 +70,13 @@ int main () {
   // start with minimum speed at all times for simplicity
   // look up table for theta values and trajectory
 
-	int length = 10;
 	int test[] = {70, 60, 50, 10, 70, 60, 50, 50, 50, 70};
-	int *ptr = path_location(test);
-	cout<<ptr[0]<<" "<<ptr[1];
-	int arr[] = {ptr[1], ptr[2]};
-	int x = rudder_pos(arr);
-	cout << x << " " << endl;
-	return 0;
+  int length = sizeof(test)/sizeof(test[0]);
+	double *ptr = path_location(test, length);
+	//cout<<ptr[0]<<" "<<ptr[1];
+	//int arr[] = {ptr[1], ptr[2]};
+	int x = rudder_pos(ptr);
+	//cout << x << " " << endl;
+  printf("x= %d\n", x);
+  return 0;
 }
