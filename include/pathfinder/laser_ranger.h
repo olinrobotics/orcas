@@ -8,9 +8,9 @@
 
 using namespace cv;
 
-class LaserLineDetector {
+class LaserRanger {
 public:
-    LaserLineDetector(std::string calibration_file);
+    LaserRanger(std::string calibration_file);
 
     bool Step(const Mat& frame);
 

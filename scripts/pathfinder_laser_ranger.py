@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 import roslib
-roslib.load_manifest('olin_pathfinder')
+roslib.load_manifest('orcas')
 import sys
 import rospy
 import cv2
@@ -61,7 +61,7 @@ class LaserRanger(object):
             ),
             angle_min=-CAMERA_H_FOV / 2.,
             angle_max=CAMERA_H_FOV / 2.,
-            angle_increment=CAMERA_H_FOV / len(self.ll.cur_distances),
+            angle_increment=CAMERA_H_FOV / width,
             time_increment=0.0,
             scan_time=1.0/30.0,
             range_min=0.0,

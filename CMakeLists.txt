@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(olin_pathfinder)
+project(orcas)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++14)
@@ -111,7 +111,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES olin_pathfinder
+  LIBRARIES orcas
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
@@ -130,21 +130,17 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
-   src/distance_estimator.cpp
+   src/pathfinder/distance_estimator.cpp
+   include/pathfinder/file_finder.h
 )
 
-add_executable(camera_publisher src/camera_publisher.cpp)
-target_link_libraries(camera_publisher ${catkin_LIBRARIES} ${PROJECT_NAME})
-add_dependencies(camera_publisher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(pathfinder_cam_publisher src/pathfinder/camera_publisher.cpp)
+target_link_libraries(pathfinder_cam_publisher ${catkin_LIBRARIES} ${PROJECT_NAME})
+add_dependencies(pathfinder_cam_publisher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(laser_detector src/laser_detector.cpp)
-target_link_libraries(laser_detector ${catkin_LIBRARIES} ${PROJECT_NAME})
-add_dependencies(laser_detector ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-add_executable(laser_line_detector src/laser_line_detector.cpp)
-target_link_libraries(laser_line_detector ${catkin_LIBRARIES} ${PROJECT_NAME})
-add_dependencies(laser_line_detector ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+add_executable(pathfinder_laser_ranger src/pathfinder/laser_ranger.cpp)
+target_link_libraries(pathfinder_laser_ranger ${catkin_LIBRARIES} ${PROJECT_NAME})
+add_dependencies(pathfinder_laser_ranger ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

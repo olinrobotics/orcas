@@ -3,36 +3,24 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <sstream> // for converting the command line parameter to integer
+#include "pathfinder/file_finder.h"
 
 int main(int argc, char** argv)
 {
   // Check if video source has been passed as a parameter
-  if(argv[1] == NULL) return 1;
+  if (argv[1] == NULL) return 1;
 
-  ros::init(argc, argv, "camera_publisher");
+  ros::init(argc, argv, "pathfinder_cam_publisher");
   ros::NodeHandle nh;
   image_transport::ImageTransport it(nh);
   image_transport::Publisher pub = it.advertise("camera/image", 1);
+  std::string pkg_path = ros::package::getPath("orcas");
 
-  // Convert the passed as command line parameter index for the video device to an integer
-  std::istringstream video_sourceCmd(argv[1]);
-  int video_source;
-  cv::VideoCapture cap;
-  // Check if it is indeed a number
-  if((video_sourceCmd >> video_source)) {
-    ROS_INFO("Using video source from camera %d", video_source);
-    cap = cv::VideoCapture(video_source);
+  VideoCapture cap;
+  std::string first_arg(argv[1]);
+  LoadCaptureArg(cap, pkg_path, first_arg);
 
-    // set to maximum resolution possible (was getting 640x480)
-    cap.set(CV_CAP_PROP_FRAME_WIDTH, 10000);
-    cap.set(CV_CAP_PROP_FRAME_HEIGHT, 10000);
-  } else {
-    std::string first_arg(argv[1]);
-    ROS_INFO("Using video source from file %s", first_arg.c_str());
-    cap = cv::VideoCapture(first_arg);
-  }
-
-  // Check if video device can be opened with the given index
+  // double-check if video device is opened
   if(!cap.isOpened()) return 1;
   cv::Mat frame;
   sensor_msgs::ImagePtr msg;

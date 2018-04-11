@@ -1,5 +1,5 @@
 #include <fstream>
-#include "distance_estimator.h"
+#include "pathfinder/distance_estimator.h"
 
 DistanceEstimator::DistanceEstimator(float a, float b, float c, float theta) :
         a_(a), b_(b), c_(c), theta_(theta), slope_(tanf(theta)) {

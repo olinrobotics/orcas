@@ -1,0 +1,10 @@
+<launch>
+  <!-- webcam publisher -->
+  <node name="pathfinder_cam_publisher"
+        pkg="orcas"
+        type="pathfinder_cam_publisher"
+        args="test_data/water.mp4" />
+  <!-- laser line detector -->
+  <node name="pathfinder_laser_ranger_py" pkg="orcas" type="pathfinder_laser_ranger.py" />
+  <node name="hz" pkg="rostopic" type="rostopic" args="hz /structured_light_scan" output="screen" />
+</launch>

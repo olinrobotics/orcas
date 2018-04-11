@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Hackable script to find threshold values.
 NOTE(danny): Saved because I've needed code like this so many times

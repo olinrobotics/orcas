@@ -1,9 +1,0 @@
-<launch>
-  <!-- webcam publisher -->
-  <node name="camera_publisher"
-        pkg="olin_pathfinder"
-        type="camera_publisher"
-        args="/opt/catkin_ws/src/robosys-cv/test_data/water.mp4" />
-  <!-- laser line detector -->
-  <node name="laser_ranger" pkg="olin_pathfinder" type="laser_ranger.py" />
-</launch>

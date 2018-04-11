@@ -1,5 +1,6 @@
-#include "laser_line_detector.h"
 #include <ros/package.h>
+#include "pathfinder/laser_ranger.h"
+#include "pathfinder/file_finder.h"
 
 using namespace cv;
 
@@ -10,15 +11,16 @@ const Scalar GREEN_HIGH(255, 140, 255);
 bool CHOP_OFF_TOP = true;  // usually just reflections, never valid
 bool CHOP_OFF_SIDES = true;  // usually garbage data
 
+// TOmaybeDO(danny): store in calibration file
 const float CAMERA_H_FOV = 64.4f;  // degrees
 const unsigned int CAMERA_H_PX = 1280;  // px
 
-LaserLineDetector::LaserLineDetector(std::string calibration_file) : distance_estimator_(calibration_file),
+LaserRanger::LaserRanger(std::string calibration_file) : distance_estimator_(calibration_file),
                                          nh_(),
                                          pub_(nh_.advertise<sensor_msgs::LaserScan>("structured_light_scan", 10)) {
 }
 
-bool LaserLineDetector::Step(const Mat &frame) {
+bool LaserRanger::Step(const Mat &frame) {
     Mat laser_mask = FindLaserMask(frame);
     // populate initial laser scan object
     std::unique_ptr<sensor_msgs::LaserScan> laser_scan = FindLaserCOMs(laser_mask);
@@ -32,7 +34,7 @@ bool LaserLineDetector::Step(const Mat &frame) {
     return true;
 }
 
-Mat LaserLineDetector::FindLaserMask(const Mat &frame) {
+Mat LaserRanger::FindLaserMask(const Mat &frame) {
     Mat hsv;
     Mat mask;
 
@@ -53,7 +55,7 @@ Mat LaserLineDetector::FindLaserMask(const Mat &frame) {
     return mask;
 }
 
-std::unique_ptr<sensor_msgs::LaserScan> LaserLineDetector::FindLaserCOMs(const Mat &mask) {
+std::unique_ptr<sensor_msgs::LaserScan> LaserRanger::FindLaserCOMs(const Mat &mask) {
     // TODO(danny): actually get the time of the image
     sensor_msgs::LaserScan scan;
     ros::Time scan_time = ros::Time::now();
@@ -96,32 +98,32 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "laser_detector");
     ros::NodeHandle nh;
     Mat frame;
+    VideoCapture capture;
 
-    // find the package root
-    std::string pkg_path = ros::package::getPath("olin_pathfinder");
-    std::string video_path = pkg_path + "/test_data/water.mp4";
+    // find the package root (orcas)
+    std::string pkg_path = ros::package::getPath("orcas");
 
-    std::string calibration_path = pkg_path + "/data/calibration.txt";
-
-    LaserLineDetector ll(calibration_path);
-
-    VideoCapture capture(video_path);
-
-    if (!capture.isOpened()) {
-        std::cerr << "Can't find file\n";
-        std::cerr << video_path + "\n";
-        char buff[FILENAME_MAX];
-        getcwd(buff, FILENAME_MAX);
-        std::cerr << buff;
+    // require an argument to launch, the camera/path to a video
+    if (argv[1] == NULL) {
+        std::cerr << "Need to launch with a camera argument!" <<
+            "(e.g. 0 or /a/path/from/orcas/video.mp4)\n";
         return 1;
     }
+    std::string first_arg(argv[1]);
 
+    LoadCaptureArg(capture, pkg_path, first_arg);
+
+    // load calibration file to make ranger
+    std::string calibration_path = pkg_path + "/data/calibration.txt";
+    LaserRanger ranger(calibration_path);
+
+    std::cerr << "Initialized. Starting loop...\n";
     while (true) {
         capture >> frame;
         if (frame.empty()) {
             break;
         }
-        ll.Step(frame);
+        ranger.Step(frame);
     }
 
     return 0;

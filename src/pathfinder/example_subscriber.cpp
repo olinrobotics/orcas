@@ -3,6 +3,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
 
+// TODO(danny): convert this/delete it
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
@@ -18,7 +19,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "laser_detector");
+  ros::init(argc, argv, "example_subscriber");
   ros::NodeHandle nh;
   cv::namedWindow("view");
   cv::startWindowThread();
