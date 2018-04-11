@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
     LaserLineDetector ll;
     Mat frame;
 
-    std::string filename = "src/robosys-cv/test_data/water.mp4";
+    std::string filename = "/opt/catkin_ws/src/robosys-cv/test_data/water.mp4";
     VideoCapture capture(filename);
 
     if (!capture.isOpened()) {
