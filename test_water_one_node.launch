@@ -1,7 +1,0 @@
-<launch>
-  <!-- laser line detector -->
-  <node name="laser_ranger"
-        pkg="orcas"
-        type="laser_ranger.py"
-        args="/opt/catkin_ws/src/robosys-cv/test_data/water.mp4" />
-</launch>

@@ -6,9 +6,9 @@ RUN apt-get update && \
 	apt-get install python-scipy -yq && \
 	apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY . src/robosys-cv
+COPY . src/orcas
 
 RUN . /opt/ros/kinetic/setup.sh && \
 	catkin_make
 
-CMD ["bash", "./src/robosys-cv/ros-entrypoint.sh", "roslaunch", "olin_pathfinder", "test_cpp_water_data.launch"]
+CMD ["bash", "./src/orcas/ros-entrypoint.sh", "roslaunch", "orcas", "test_cpp_water_data.launch"]
