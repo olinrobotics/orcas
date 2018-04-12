@@ -1,0 +1,5 @@
+<launch>
+  <!-- laser line detector, cpp edition -->
+  <node name="pathfinder_laser_ranger" pkg="orcas" type="pathfinder_laser_ranger" args="test_data/water.mp4" />
+  <node name="hz" pkg="rostopic" type="rostopic" args="hz /structured_light_scan" output="screen" />
+</launch>
