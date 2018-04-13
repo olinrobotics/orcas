@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
     // require an argument to launch, the camera/path to a video
     if (argv[1] == NULL) {
         std::cerr << "Need to launch with a camera argument!" <<
-            "(e.g. 0 or /a/path/from/orcas/video.mp4)\n";
+            "(e.g. 0 or a/path/from/orcas/video.mp4)\n";
         return 1;
     }
     std::string first_arg(argv[1]);
