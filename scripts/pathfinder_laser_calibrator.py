@@ -289,6 +289,8 @@ def find_laser_line_mask(img):
 
 
 if __name__ == '__main__':
+    print(*DistanceEstimator.find_calibration(DEFAULT_CALIBRATION_DATA, show=True).calculate_distances(np.full(1280, 426.5)))
+    exit(0)
     if len(sys.argv) != 2:
         print('usage: python laser_distance_estimator.py <opencv_camera_id/path_to_video>')
         exit(1)

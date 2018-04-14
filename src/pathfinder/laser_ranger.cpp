@@ -5,11 +5,11 @@
 using namespace cv;
 
 // hsv
-const Scalar GREEN_LOW(0, 0, 0);
-const Scalar GREEN_HIGH(255, 140, 255);
+const Scalar kGreenLow(0, 0, 0);
+const Scalar kGreenHigh(255, 140, 255);
 
-bool CHOP_OFF_TOP = true;  // usually just reflections, never valid
-bool CHOP_OFF_SIDES = true;  // usually garbage data
+bool kChopOffTop = true;  // usually just reflections, never valid
+bool kChopOffSides = true;  // usually garbage data
 
 // TOmaybeDO(danny): store in calibration file
 const float CAMERA_H_FOV = 64.4f;  // degrees
@@ -39,15 +39,15 @@ Mat LaserRanger::FindLaserMask(const Mat &frame) {
     Mat mask;
 
     cvtColor(frame, hsv, CV_BGR2HSV);
-    inRange(hsv, GREEN_LOW, GREEN_HIGH, mask);
+    inRange(hsv, kGreenLow, kGreenHigh, mask);
 
     int w = frame.cols;
     int h = frame.rows;
 
-    if (CHOP_OFF_TOP) {
+    if (kChopOffTop) {
         rectangle(mask, Point(0, 0), Point(w, h / 4), Scalar(0, 0, 0), -1);
     }
-    if (CHOP_OFF_SIDES) {
+    if (kChopOffSides) {
         rectangle(mask, Point(0, 0), Point(w / 5, h), Scalar(0, 0, 0), -1);
         rectangle(mask, Point(w - (w / 5), 0), Point(w, h), Scalar(0, 0, 0), -1);
     }

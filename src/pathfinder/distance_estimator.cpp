@@ -38,6 +38,9 @@ DistanceEstimator::DistanceEstimator(std::string calibration_path) {
     std::stringstream theta_stream(line);
     theta_ = GetNextNumber(theta_stream, false);
     std::cerr << "theta: " << theta_ << "\n";
+
+    // have to initialize slope too.
+    slope_ = tanf(theta_);
 }
 
 void DistanceEstimator::CalculateDistances(
