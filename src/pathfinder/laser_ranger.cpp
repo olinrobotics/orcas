@@ -12,7 +12,7 @@ bool kChopOffTop = true;  // usually just reflections, never valid
 bool kChopOffSides = true;  // usually garbage data
 
 // TOmaybeDO(danny): store in calibration file
-const float CAMERA_H_FOV = 64.4f;  // degrees
+const float CAMERA_H_FOV = 64.4f / 180.0f * 3.14159f;  // degrees -> radians
 const unsigned int CAMERA_H_PX = 1280;  // px
 
 LaserRanger::LaserRanger(std::string calibration_file) : distance_estimator_(calibration_file),

@@ -62,7 +62,7 @@ void DistanceEstimator::CalculateDistances(
         // correct the height of the pixel based on the angle of the laser
         float corrected_height = laser_scan.intensities[i] - x * slope_;
 
-        // calculate range in cm based on calibrated equation coefs
-        laser_scan.ranges[i] = a_ + b_ * logf(corrected_height - c_);
+        // calculate range in cm based on calibrated equation coefs (and convert to meters)
+        laser_scan.ranges[i] = (a_ + b_ * logf(corrected_height - c_)) * 0.01f;
     }
 }
