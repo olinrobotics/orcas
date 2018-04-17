@@ -39,6 +39,7 @@ def path_location(range_array):
 
     return center_point, length
 
+
 def rudder_pos(gap_center, range_length):
     '''
     normalized values:
