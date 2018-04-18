@@ -1,0 +1,16 @@
+FROM ros:kinetic-perception
+
+WORKDIR /opt/catkin_ws
+
+RUN apt-get update && \
+	apt-get install python-scipy -yq && \
+	apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY . src/orcas
+
+RUN . /opt/ros/kinetic/setup.sh && \
+	catkin_make
+
+ENTRYPOINT ["bash", "./src/orcas/ros-entrypoint.sh"]
+
+CMD ["roslaunch", "orcas", "pathfinder_cpp_test.launch"]
