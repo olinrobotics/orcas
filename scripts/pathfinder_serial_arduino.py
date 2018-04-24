@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import sys
+import roslib
+roslib.load_manifest('orcas')
 import rospy
 import serial
-from std_msgs.msg import Header
-from orcas_msgs.msg import BoatMotorCommand
+from orcas.msg import BoatMotorCommand
 
 
 SERIAL_DEV = "/dev/ttyACM0"
@@ -17,9 +18,12 @@ class MotorCommander(object):
         rospy.init_node('motor_commander')
         self.motor_plan_sub = rospy.Subscriber("motor_plan", BoatMotorCommand, self.on_plan_msg)
 
-        self.serial_conn = serial.Serial(SERIAL_DEV, SERIAL_BAUD, timeout=.1)
-        sys.stderr.write("{}\n".format(self.serial_conn))
-        sys.stderr.flush()
+        try:
+            self.serial_conn = serial.Serial(SERIAL_DEV, SERIAL_BAUD, timeout=.1)
+            sys.stderr.write("{}\n".format(self.serial_conn))
+            sys.stderr.flush()
+        except serial.serialutil.SerialException:
+            self.serial_conn = None
 
 
     def on_plan_msg(self, motor_command):
@@ -28,8 +32,10 @@ class MotorCommander(object):
             motor_command.propeller_angle,
             motor_command.rudder_angle
         )
-        if self.serial_conn.isOpen():
+        if self.serial_conn is not None and self.serial_conn.isOpen():
             self.serial_conn.write(serial_message.encode())
+        sys.stderr.write("motor: {}\n".format(serial_message))
+        sys.stderr.flush()
 
 
 if __name__ == '__main__':

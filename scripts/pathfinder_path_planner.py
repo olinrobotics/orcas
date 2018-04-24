@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 import sys
 import rospy
+import roslib
+roslib.load_manifest('orcas')
 from std_msgs.msg import Header, ColorRGBA
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Vector3, Pose, Point, Quaternion
 from visualization_msgs.msg import Marker
-from orcas_msgs.msg import BoatMotorCommand
+from orcas.msg import BoatMotorCommand
 from tf.transformations import quaternion_from_euler
 # path plan in python
 import math
-
 
 class PathPlanner(object):
     """ ROS node to plan a path for the Pathfinder Boat """
@@ -29,10 +30,12 @@ class PathPlanner(object):
             frame_id='webcam_frame'
         )
 
+        desired_angle = gap_center * laser_scan.angle_increment + laser_scan.angle_min
+
         self.path_pub.publish(
             header=path_header,
             type=Marker.ARROW,
-            pose=self.get_pose(gap_center * laser_scan.angle_increment + laser_scan.angle_min),
+            pose=self.get_pose(desired_angle),
             scale=Vector3(0.1, 0.01, 0.01),
             color=ColorRGBA(0.0, 0.0, 1.0, 0.4)
         )
@@ -40,7 +43,7 @@ class PathPlanner(object):
         self.motor_pub.publish(
             header=path_header,
             propeller_angle=95,
-            rudder_angle=gap_center + 90
+            rudder_angle=int(-math.degrees(desired_angle) + 90)
         )
 
     def get_pose(self, angle):
