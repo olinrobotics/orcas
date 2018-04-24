@@ -24,6 +24,7 @@ void setup() {
   rudder.attach(10);
   rudder.write(rudd_pos);
 
+  Serial.println("command.");
 }
 
 void loop() {
