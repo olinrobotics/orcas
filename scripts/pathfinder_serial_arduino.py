@@ -23,6 +23,8 @@ class MotorCommander(object):
             sys.stderr.write("{}\n".format(self.serial_conn))
             sys.stderr.flush()
         except serial.serialutil.SerialException:
+            sys.stderr.write("{}\n".format("Couldn't connect to arduino!"))
+            sys.stderr.flush()
             self.serial_conn = None
 
 
@@ -34,6 +36,7 @@ class MotorCommander(object):
         )
         if self.serial_conn is not None and self.serial_conn.isOpen():
             self.serial_conn.write(serial_message.encode())
+            sys.stderr.write("from arduino: {}\n".format(self.serial_conn.readline()))
         sys.stderr.write("motor: {}\n".format(serial_message))
         sys.stderr.flush()
 
