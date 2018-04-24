@@ -31,7 +31,10 @@ void loop() {
 
     prop_pos = Serial.parseInt();
     rudd_pos = Serial.parseInt();
-    Serial.println("step.");
+    Serial.print(prop_pos);
+    Serial.print(" ");
+    Serial.print(rudd_pos);
+    Serial.println(" step.");
 
     propellers.write(prop_pos);
     rudder.write(rudd_pos);
