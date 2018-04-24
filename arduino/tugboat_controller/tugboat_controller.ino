@@ -24,7 +24,6 @@ void setup() {
   rudder.attach(10);
   rudder.write(rudd_pos);
 
-  Serial.println("command.");
 }
 
 void loop() {
@@ -32,8 +31,9 @@ void loop() {
 
     prop_pos = Serial.parseInt();
     rudd_pos = Serial.parseInt();
-  }
+    Serial.println("step.");
 
-  propellers.write(prop_pos);
-  rudder.write(rudd_pos);
+    propellers.write(prop_pos);
+    rudder.write(rudd_pos);
+  }
 }

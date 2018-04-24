@@ -17,6 +17,7 @@ class MotorCommander(object):
         super(MotorCommander, self).__init__()
         rospy.init_node('motor_commander')
         self.motor_plan_sub = rospy.Subscriber("motor_plan", BoatMotorCommand, self.on_plan_msg)
+        self.sent_messages = 0
 
         try:
             self.serial_conn = serial.Serial(SERIAL_DEV, SERIAL_BAUD, timeout=.1)
@@ -29,15 +30,15 @@ class MotorCommander(object):
 
 
     def on_plan_msg(self, motor_command):
-
-        serial_message = "{},{}\n".format(
+        self.sent_messages += 1
+        serial_message = "{},{}".format(
             motor_command.propeller_angle,
             motor_command.rudder_angle
         )
         if self.serial_conn is not None and self.serial_conn.isOpen():
-            self.serial_conn.write(serial_message.encode())
+            self.serial_conn.write(serial_message.encode('ascii', 'replace'))
             sys.stderr.write("from arduino: {}\n".format(self.serial_conn.readline()))
-        sys.stderr.write("motor: {}\n".format(serial_message))
+        sys.stderr.write("{} motor: {}\n".format(self.sent_messages, serial_message))
         sys.stderr.flush()
 
 
