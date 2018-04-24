@@ -32,7 +32,7 @@ class MotorCommander(object):
 
     def on_plan_msg(self, motor_command):
         self.sent_messages += 1
-        serial_message = "{},{},".format(
+        serial_message = "{},{} ".format(
             motor_command.propeller_angle,
             motor_command.rudder_angle
         )
