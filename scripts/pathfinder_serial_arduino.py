@@ -5,7 +5,6 @@ roslib.load_manifest('orcas')
 import rospy
 import serial
 from orcas.msg import BoatMotorCommand
-import time
 
 
 SERIAL_DEV = "/dev/ttyACM0"
@@ -41,7 +40,6 @@ class MotorCommander(object):
             sys.stderr.write("from arduino: {}\n".format(self.serial_conn.readline()))
         sys.stderr.write("{} motor: {}\n".format(self.sent_messages, serial_message))
         sys.stderr.flush()
-        time.sleep(0.5)
 
 
 if __name__ == '__main__':
