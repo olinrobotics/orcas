@@ -5,6 +5,7 @@ from std_msgs.msg import Header, ColorRGBA
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Vector3, Pose, Point, Quaternion
 from visualization_msgs.msg import Marker
+from orcas_msgs.msg import BoatMotorCommand
 from tf.transformations import quaternion_from_euler
 # path plan in python
 import math
@@ -17,19 +18,29 @@ class PathPlanner(object):
         rospy.init_node('path_planner')
         self.scan_sub = rospy.Subscriber("structured_light_scan", LaserScan, self.on_scan)
         self.path_pub = rospy.Publisher("path_plan", Marker, queue_size=10)
+        self.motor_pub = rospy.Publisher("motor_plan", BoatMotorCommand, queue_size=10)
 
     def on_scan(self, laser_scan):
         gap_center, gap_width = path_location(laser_scan.ranges)
         sys.stderr.write("{} {}\n".format(gap_center, gap_width))
+
+        path_header = Header(
+            stamp=rospy.Time.now(),
+            frame_id='webcam_frame'
+        )
+
         self.path_pub.publish(
-            header=Header(
-                stamp=rospy.Time.now(),
-                frame_id='webcam_frame'
-            ),
+            header=path_header,
             type=Marker.ARROW,
             pose=self.get_pose(gap_center * laser_scan.angle_increment + laser_scan.angle_min),
             scale=Vector3(0.1, 0.01, 0.01),
             color=ColorRGBA(0.0, 0.0, 1.0, 0.4)
+        )
+
+        self.motor_pub.publish(
+            header=path_header,
+            propeller_angle=95,
+            rudder_angle=gap_center + 90
         )
 
     def get_pose(self, angle):
