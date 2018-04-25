@@ -4,6 +4,8 @@
 
 using namespace cv;
 
+#define INVERT_HORIZONTAL true
+
 // hsv
 const Scalar kGreenLow(0, 0, 0);
 const Scalar kGreenHigh(255, 140, 255);
@@ -85,9 +87,17 @@ std::unique_ptr<sensor_msgs::LaserScan> LaserRanger::FindLaserCOMs(const Mat &ma
         }
         if (total_mass > 0) {
             // calculate center of mass position
+            #if INVERT_HORIZONTAL
+            scan.intensities[mask.cols - i - 1] = (float) total_mass_weighted / total_mass;
+            #else
             scan.intensities[i] = (float) total_mass_weighted / total_mass;
+            #endif
         } else {
+            #if INVERT_HORIZONTAL
+            scan.intensities[mask.cols - i - 1] = 0.0f;
+            #else
             scan.intensities[i] = 0.0f;
+            #endif
         }
     }
 
