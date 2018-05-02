@@ -13,6 +13,11 @@ import scipy.ndimage
 THEORETICAL_GREEN_HUE = 84  # if we believe in nm -> hsv
 MASK_LOW = np.array([0, 0, 0])
 MASK_HIGH = np.array([255, 255, 255])
+
+# values used to say that an area should be considered highly likely to be lit by a laser
+BRIGHT_LOW = np.array([130, 130, 130])
+BRIGHT_HIGH = np.array([255, 255, 255])
+
 RED_LOW = np.array([0, 0, 0])
 RED_HIGH = np.array([255, 130, 255])
 
@@ -42,6 +47,20 @@ DEFAULT_CALIBRATION_DATA = np.array([
     [50.0, 0.096715703558109, 446.30163810992184]
 ])
 
+PARTIAL_CALIBRATION_DATA = np.array([
+    [10.0, 0.00532441604458, 609.923296015],
+    [15.0, 0.00158105854316, 554.964525498],
+    [20.0, 0.0035585336094, 525.053807983],
+    [25.0, 0.00342775818148, 506.446205515],
+    [30.0, 0.00374348072362, 492.178516176],
+    [35.0, 0.00399844538653, 481.977655348],
+    [40.0, 0.00377822965241, 473.869403212],
+    [45.0, 0.00485683346298, 469.961983244],
+    [50.0, 0.00370786443564, 463.448781636],
+    [55.0, 0.00454729626945, 458.905182444],
+    [60.0, 0.00422393893265, 454.871022214]
+])
+
 def nothing(x):
     pass
 
@@ -54,11 +73,12 @@ class DistanceEstimator(object):
     Has convenience methods for calculating, loading, and saving
     calibration files with the coefficients.
     """
-    def __init__(self, a, b, c, theta):
+    def __init__(self, a, b, c, d, theta):
         super(DistanceEstimator, self).__init__()
         self.a = a
         self.b = b
         self.c = c
+        self.d = d
         self.theta = theta
 
         # only used in the calculate_distances method
@@ -80,12 +100,12 @@ class DistanceEstimator(object):
 
         # TODO(danny): precalculate this
         corrected_coms = coms - np.arange(-width / 2, width / 2) * self.slope
-        return self.a + self.b * np.log(corrected_coms - self.c)
+        return self.a + self.b * np.tan(corrected_coms / self.c - self.d)
 
     def save(self, path=CALIBRATION_PATH):
         with open(path, 'w') as calibration_file:
-            calibration_file.write('# lambda px: a+b*np.log(px - c) -> distance cm\n')
-            calibration_file.write('{},{},{}\n'.format(self.a, self.b, self.c))
+            calibration_file.write('# lambda px: a + b * np.tan(px / c - d) -> distance cm\n')
+            calibration_file.write('{},{},{},{}\n'.format(self.a, self.b, self.c, self.d))
             calibration_file.write('# angle of laser line relative to camera (radians)\n')
             calibration_file.write('{}\n'.format(self.theta))
 
@@ -100,19 +120,27 @@ class DistanceEstimator(object):
 
         dist_cm = calibration_data[:, 0]
         intercept_px = calibration_data[:, 2]
-        a, b, c = scipy.optimize.curve_fit(lambda x,a,b,c: a+b*np.log(x - c), intercept_px, dist_cm)[0]
+        a, b, c, d = scipy.optimize.curve_fit(
+            lambda x,a,b,c,d: a + b * np.tan(x / c - d),
+            intercept_px,
+            dist_cm,
+            bounds=(
+                [-np.inf, -np.inf, 0.0, -np.inf],
+                [np.inf, np.inf, 720., np.inf]  # TODO(danny): remove hardcoded height of image
+            )
+        )[0]
 
         if show:
             import matplotlib.pyplot as plt
             plt.plot(intercept_px, dist_cm, 'o', label='Original data', markersize=10)
             smoother_px_values = np.linspace(intercept_px[0], intercept_px[-1], 100)
-            plt.plot(smoother_px_values, a + b * np.log(smoother_px_values - c), 'r', label='Fitted line')
+            plt.plot(smoother_px_values, a + b * np.tan(smoother_px_values / c - d), 'r', label='Fitted line')
             plt.legend()
             plt.show()
 
-        print('a: {} b: {} c: {} theta: {}'.format(a, b, c, avg_theta))
+        print('a: {} b: {} c: {} d: {} theta: {}'.format(a, b, c, d, avg_theta))
 
-        return DistanceEstimator(a, b, c, avg_theta)
+        return DistanceEstimator(a, b, c, d, avg_theta)
 
     @staticmethod
     def load_calibration(path=CALIBRATION_PATH):
@@ -122,10 +150,10 @@ class DistanceEstimator(object):
             _ = calibration_file.readline()  # read next comment
             theta_str = calibration_file.readline()  # read laser angle data
 
-        a, b, c = (float(n) for n in curve_coefs_str.split(','))
+        a, b, c, d = (float(n) for n in curve_coefs_str.split(','))
         theta = float(theta_str)
 
-        return DistanceEstimator(a, b, c, theta)
+        return DistanceEstimator(a, b, c, d, theta)
 
 
 class LaserLineDetector(object):
@@ -151,7 +179,7 @@ class LaserLineDetector(object):
 
     def find_laser_coms(self):
         self.cur_mask = find_laser_line_mask(self.cur_frame)
-        mask = cv2.inRange(self.cur_frame, np.array([130, 130, 130]), MASK_HIGH)
+        mask = cv2.inRange(self.cur_frame, BRIGHT_LOW, BRIGHT_HIGH)
         self.cur_frame = cv2.addWeighted(
             self.cur_frame, 0.5,
             cv2.bitwise_and(self.cur_frame, self.cur_frame, mask=mask), 60 / 255.0,
@@ -165,7 +193,7 @@ class LaserLineDetector(object):
             h = int(mass_px)
             cv2.line(self.cur_frame, (i,h), (i,h), (255,0,0), 1)
 
-    def draw_mask(self, low, high):
+    def draw_mask(self):
         self.cur_frame = cv2.bitwise_and(self.cur_frame, self.cur_frame, mask=self.cur_mask)
 
     def draw_intercept(self):
@@ -225,10 +253,6 @@ class LaserLineDetector(object):
                 cv2.line(self.cur_frame, (x, 0), (x, int(dist)), (0, 0, 255), 1)
 
     def run_windowed(self):
-        cv2.namedWindow('result')
-
-        cv2.createTrackbar('low', 'result', 0, 255, nothing)
-        cv2.createTrackbar('high', 'result', 0, 255, nothing)
         self.cap = cv2.VideoCapture(self.camera_id)
 
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 10000)
@@ -244,9 +268,7 @@ class LaserLineDetector(object):
         while True:
             ret, frame = self.cap.read()
             self.step(frame)
-            low_v = cv2.getTrackbarPos('low', 'result')
-            high_v = cv2.getTrackbarPos('high', 'result')
-            self.draw_mask(low_v, high_v)
+            self.draw_mask()
             self.draw_laser_coms()
             self.draw_intercept()
             self.find_distances()
@@ -324,8 +346,8 @@ def find_laser_line_mask(img):
 
 
 if __name__ == '__main__':
-    # print(*DistanceEstimator.find_calibration(DEFAULT_CALIBRATION_DATA, show=True).calculate_distances(np.full(1280, 426.5)))
-    # exit(0)
+    DistanceEstimator.find_calibration(PARTIAL_CALIBRATION_DATA, show=True).save()
+    exit(0)
     if len(sys.argv) != 2:
         print('usage: python laser_distance_estimator.py <opencv_camera_id/path_to_video>')
         exit(1)
