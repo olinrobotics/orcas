@@ -1,4 +1,4 @@
-# lambda px: a + b * np.tan(px / c - d) -> distance cm
--3.92348787179,-3.81561006232,719.999999999,-10.4229603605
+# lambda px: a + b * np.tan(px - c) -> distance cm
+-3.92349530246,-3.81561181589,2.14341023137
 # angle of laser line relative to camera (radians)
 0.0038861460681
