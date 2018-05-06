@@ -61,6 +61,7 @@ PARTIAL_CALIBRATION_DATA = np.array([
     [60.0, 0.00422393893265, 454.871022214 / 720.]
 ])
 
+
 def nothing(x):
     pass
 
@@ -120,7 +121,7 @@ class DistanceEstimator(object):
         dist_cm = calibration_data[:, 0]
         intercept_px = calibration_data[:, 2]
         a, b, c = scipy.optimize.curve_fit(
-            lambda x,a,b,c: a + b * np.tan(x - c),
+            lambda x, a, b, c: a + b * np.tan(x - c),
             intercept_px,
             dist_cm
         )[0]
@@ -186,7 +187,7 @@ class LaserLineDetector(object):
         # print([v for v in self.cur_coms])
         for i, mass_px in enumerate(self.cur_coms):
             h = int(mass_px)
-            cv2.line(self.cur_frame, (i,h), (i,h), (255,0,0), 1)
+            cv2.line(self.cur_frame, (i, h), (i, h), (255, 0, 0), 1)
 
     def draw_mask(self):
         self.cur_frame = cv2.bitwise_and(self.cur_frame, self.cur_frame, mask=self.cur_mask)
@@ -311,6 +312,9 @@ def get_laser_coms_from_img(mask, img):
     rows, cols = gray.shape
     center_of_masses = np.zeros(cols)
     for col in range(cols):
+        if np.sum(gray[:, col]) < rows / 36.0:
+            center_of_masses[col] = rows / 100
+            continue
         column = gray[:, col]
         if any(column):
             column = np.power(column, 6.0)

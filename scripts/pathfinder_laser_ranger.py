@@ -30,8 +30,8 @@ class LaserRanger(object):
             self.image_sub = rospy.Subscriber("camera/image", Image, self.on_image)
         else:
             self.cap = cv2.VideoCapture(self.camera_id)
-            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH,10000)
-            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT,10000)
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 10000)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 10000)
 
         self.ll = LaserLineDetector(camera=None)
 
@@ -46,8 +46,6 @@ class LaserRanger(object):
             ret, cv_image = self.cap.read()
 
         (rows, cols, channels) = cv_image.shape
-        if cols > 60 and rows > 60 :
-            cv2.circle(cv_image, (50,50), 10, 255)
 
         self.ll.step(cv_image)
         self.ll.find_distances()
@@ -68,6 +66,7 @@ class LaserRanger(object):
             range_max=50.0,
             ranges=self.ll.cur_distances,
         )
+
 
 def main(args):
     if len(args) == 1:
