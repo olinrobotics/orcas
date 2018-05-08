@@ -12,6 +12,8 @@ from tf.transformations import quaternion_from_euler
 # path plan in python
 import math
 
+PLAN_USING_EMPTY = False
+
 class PathPlanner(object):
     """ ROS node to plan a path for the Pathfinder Boat """
     def __init__(self):
@@ -37,15 +39,17 @@ class PathPlanner(object):
 
         gap_left_angle = gap_left * laser_scan.angle_increment + laser_scan.angle_min
         # check to see if there's an obstacle left of the found gap
-        # if left_is_empty:
-        #     gap_left_angle = laser_scan.angle_min
+        if left_is_empty and PLAN_USING_EMPTY:
+            gap_left_angle = laser_scan.angle_min
 
         gap_right_angle = gap_right * laser_scan.angle_increment + laser_scan.angle_min
         # check to see if there's an obstacle right of the found gap
-        # if right_is_empty:
-        #     gap_right_angle = laser_scan.angle_max
+        if right_is_empty and PLAN_USING_EMPTY:
+            gap_right_angle = laser_scan.angle_max
 
-        desired_angle = gap_left_angle + (gap_right_angle - gap_left_angle) * 0.5
+        desired_angle = (
+            gap_left_angle + (gap_right_angle - gap_left_angle) * 0.5
+        ) * 3.0  # arbitrary
 
         motor_power = 1.0
         if gap_right_angle - gap_left_angle < math.radians(5.0):
