@@ -339,7 +339,7 @@ def find_laser_line_mask(img):
         cv2.rectangle(mask, (0, 0), (cols, rows // 4), (0, 0, 0), -1)
     if CHOP_OFF_SIDES:
         cv2.rectangle(mask, (0, 0), (cols // 5, rows), (0, 0, 0), -1)
-        cv2.rectangle(mask, (cols - (cols // 4), 0), (cols, rows), (0, 0, 0), -1)
+        cv2.rectangle(mask, (cols - (cols // 5), 0), (cols, rows), (0, 0, 0), -1)
 
     return mask
 
