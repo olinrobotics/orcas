@@ -184,7 +184,6 @@ class LaserLineDetector(object):
         self.cur_coms = get_laser_coms_from_img(self.cur_mask, self.cur_frame)
 
     def draw_laser_coms(self):
-        # print([v for v in self.cur_coms])
         for i, mass_px in enumerate(self.cur_coms):
             h = int(mass_px)
             cv2.line(self.cur_frame, (i, h), (i, h), (255, 0, 0), 1)
@@ -240,6 +239,7 @@ class LaserLineDetector(object):
             return
         height, width, channels = self.cur_frame.shape
         dists = self.estimator.calculate_distances(self.cur_coms / float(height))
+
         self.cur_distances = dists
 
     def draw_distances(self):
@@ -313,13 +313,12 @@ def get_laser_coms_from_img(mask, img):
     center_of_masses = np.zeros(cols)
     for col in range(cols):
         if np.sum(gray[:, col]) < rows / 36.0:
-            center_of_masses[col] = rows / 100
+            center_of_masses[col] = 0.0
             continue
         column = gray[:, col]
         if any(column):
             column = np.power(column, 6.0)
             center_of_masses[col] = scipy.ndimage.measurements.center_of_mass(column)[0]
-
     return center_of_masses
 
 def get_average_laser_px(center_of_masses):

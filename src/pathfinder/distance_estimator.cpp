@@ -51,7 +51,7 @@ void DistanceEstimator::CalculateDistances(
 
     for (unsigned int i = 0; i < width; i++) {
         // center x at the middle of the image
-        float x = (float)i - ((float)width / 2.0f);
+        float x = (static_cast<float>(i) / static_cast<float>(width)) - 0.5f;
 
         // if we didn't get a measurement, just set range to nan and go to the next
         if (laser_scan.intensities[i] == 0.0f) {
@@ -60,9 +60,9 @@ void DistanceEstimator::CalculateDistances(
         }
 
         // correct the height of the pixel based on the angle of the laser
-        float corrected_height = laser_scan.intensities[i] - x * slope_;
-
+        float corrected_height = laser_scan.intensities[i] - (x * -slope_);  // NOTE(danny): flipped slope
+        float distance_cm = (a_ + b_ * tanf(corrected_height - c_));
         // calculate range in cm based on calibrated equation coefs (and convert to meters)
-        laser_scan.ranges[i] = (a_ + b_ * logf(corrected_height - c_)) * 0.01f;
+        laser_scan.ranges[i] = distance_cm * 0.01f;
     }
 }

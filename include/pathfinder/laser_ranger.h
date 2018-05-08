@@ -15,8 +15,8 @@ public:
 
     bool Step(const Mat& frame);
 
-    Mat FindLaserMask(const Mat& frame);
-    std::unique_ptr<sensor_msgs::LaserScan> FindLaserCOMs(const Mat& mask);
+    Mat FindFrameMask(const Mat& gray_frame);
+    std::unique_ptr<sensor_msgs::LaserScan> FindLaserCOMs(const Mat& gray);
 
 private:
     DistanceEstimator distance_estimator_;

@@ -2,13 +2,18 @@
 #include "pathfinder/laser_ranger.h"
 #include "pathfinder/file_finder.h"
 
+// NOTE(danny): if the masked laser image isn't right, use to debug
+//#define SHOW_IMAGE
+
 using namespace cv;
 
-#define INVERT_HORIZONTAL true
+// rgb
+const Scalar kMaskLow(0);
+const Scalar kMaskHigh(255);
 
-// hsv
-const Scalar kGreenLow(0, 0, 0);
-const Scalar kGreenHigh(255, 140, 255);
+// gray
+const Scalar kBrightLow(130);
+const Scalar kBrightHigh(255);
 
 bool kChopOffTop = true;  // usually just reflections, never valid
 bool kChopOffSides = true;  // usually garbage data
@@ -22,10 +27,29 @@ LaserRanger::LaserRanger(std::string calibration_file) : distance_estimator_(cal
                                          pub_(nh_.advertise<sensor_msgs::LaserScan>("structured_light_scan", 10)) {
 }
 
-bool LaserRanger::Step(const Mat &frame) {
-    Mat laser_mask = FindLaserMask(frame);
+bool LaserRanger::Step(const Mat &gray_frame) {
+    Mat frame_mask = FindFrameMask(gray_frame);
+    Mat highlight_mask;
+    Mat highlight_values;
+    Mat gray_output;
+
+    // original frame -> highlight bright parts into a mask
+    // highlight likely laser parts
+    inRange(gray_frame, kBrightLow, kBrightHigh, highlight_mask);
+
+    // cut out laser values with highlight mask
+    bitwise_and(gray_frame, gray_frame, highlight_values, highlight_mask);
+
+    addWeighted(gray_frame, 0.5f, highlight_values, 60.0f / 255.0f, 0.0, gray_output);
+
+    // ignore part of the image
+    bitwise_and(gray_output, gray_output, gray_output, frame_mask);
+    #ifdef SHOW_IMAGE
+    imshow("window", gray_output);
+    waitKey(10);
+    #endif
     // populate initial laser scan object
-    std::unique_ptr<sensor_msgs::LaserScan> laser_scan = FindLaserCOMs(laser_mask);
+    std::unique_ptr<sensor_msgs::LaserScan> laser_scan = FindLaserCOMs(gray_output);
 
     // fill out the scan ranges
     distance_estimator_.CalculateDistances(*laser_scan);
@@ -36,28 +60,26 @@ bool LaserRanger::Step(const Mat &frame) {
     return true;
 }
 
-Mat LaserRanger::FindLaserMask(const Mat &frame) {
-    Mat hsv;
+Mat LaserRanger::FindFrameMask(const Mat &gray_frame) {
     Mat mask;
 
-    cvtColor(frame, hsv, CV_BGR2HSV);
-    inRange(hsv, kGreenLow, kGreenHigh, mask);
+    inRange(gray_frame, kMaskLow, kMaskHigh, mask);
 
-    int w = frame.cols;
-    int h = frame.rows;
+    int w = gray_frame.cols;
+    int h = gray_frame.rows;
 
     if (kChopOffTop) {
-        rectangle(mask, Point(0, 0), Point(w, h / 4), Scalar(0, 0, 0), -1);
+        rectangle(mask, Point(0, 0), Point(w, h / 4), Scalar(0), -1);
     }
     if (kChopOffSides) {
-        rectangle(mask, Point(0, 0), Point(w / 5, h), Scalar(0, 0, 0), -1);
-        rectangle(mask, Point(w - (w / 5), 0), Point(w, h), Scalar(0, 0, 0), -1);
+        rectangle(mask, Point(0, 0), Point(w / 5, h), Scalar(0), -1);
+        rectangle(mask, Point(w - (w / 5), 0), Point(w, h), Scalar(0), -1);
     }
 
     return mask;
 }
 
-std::unique_ptr<sensor_msgs::LaserScan> LaserRanger::FindLaserCOMs(const Mat &mask) {
+std::unique_ptr<sensor_msgs::LaserScan> LaserRanger::FindLaserCOMs(const Mat &gray) {
     // TODO(danny): actually get the time of the image
     sensor_msgs::LaserScan scan;
     ros::Time scan_time = ros::Time::now();
@@ -69,35 +91,34 @@ std::unique_ptr<sensor_msgs::LaserScan> LaserRanger::FindLaserCOMs(const Mat &ma
     scan.range_min = 0.0f;
     scan.range_max = 1000.0f;
 
-    assert(CAMERA_H_PX == mask.cols);  // we are making this assumption
+    assert(CAMERA_H_PX == gray.cols);  // we are making this assumption
 
     // bastardization of this field, these are center of masses (pixel heights)
     scan.intensities.resize(CAMERA_H_PX);
     scan.ranges.resize(CAMERA_H_PX);
 
+    Mat gray_float;
+    gray.convertTo(gray_float, CV_32FC1);
+
     // it would be really awesome if I wanted to get rows instead of cols
-    unsigned char *input = mask.data;
-    for (int i = 0; i < mask.cols; i++) {
-        int total_mass = 0;  // mass
-        int total_mass_weighted = 0;  // mass * position
-        for (int j = 0; j < mask.rows; j++) {
-            unsigned char g = input[(int) mask.step * j + i];  // gray
-            total_mass_weighted += j * g;
+    for (int col = 0; col < gray_float.cols; col++) {
+        float total_unaltered_mass = 0;
+        float total_mass = 0;  // mass
+        float total_mass_weighted = 0;  // mass * position
+        for (int row = 0; row < gray_float.rows; row++) {
+            float g = gray_float.at<float>(row, col) / 255.0f;
+            total_unaltered_mass += g;
+            g = powf(g, 6.0f);
+            //unsigned char g = input[(int) mask.step * j + i];  // gray
+            total_mass_weighted += row * g;
             total_mass += g;
         }
-        if (total_mass > 0) {
+
+        if (total_unaltered_mass > static_cast<float>(gray_float.rows) / 36.0f) {
             // calculate center of mass position
-            #if INVERT_HORIZONTAL
-            scan.intensities[mask.cols - i - 1] = (float) total_mass_weighted / total_mass;
-            #else
-            scan.intensities[i] = (float) total_mass_weighted / total_mass;
-            #endif
+            scan.intensities[col] = (total_mass_weighted / total_mass) / static_cast<float>(gray_float.rows);
         } else {
-            #if INVERT_HORIZONTAL
-            scan.intensities[mask.cols - i - 1] = 0.0f;
-            #else
-            scan.intensities[i] = 0.0f;
-            #endif
+            scan.intensities[col] = 0.0f;
         }
     }
 
@@ -110,6 +131,9 @@ int main(int argc, char **argv) {
     Mat frame;
     VideoCapture capture;
 
+    #ifdef SHOW_IMAGE
+    namedWindow("window", WINDOW_AUTOSIZE);
+    #endif
     // find the package root (orcas)
     std::string pkg_path = ros::package::getPath("orcas");
 
@@ -127,13 +151,18 @@ int main(int argc, char **argv) {
     std::string calibration_path = pkg_path + "/data/calibration.txt";
     LaserRanger ranger(calibration_path);
 
-    std::cerr << "Initialized. Starting loop...\n";
+    std::cerr << "Initialized. Starting loop soon...\n";
     while (true) {
         capture >> frame;
         if (frame.empty()) {
             break;
         }
-        ranger.Step(frame);
+        Mat gray_frame;
+        // extract original green channel into a gray image
+        cv::extractChannel(frame, gray_frame, 1);
+        // flip frame horizontally
+        flip(gray_frame, gray_frame, +1);
+        ranger.Step(gray_frame);
     }
 
     return 0;

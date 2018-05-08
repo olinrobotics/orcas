@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
+import math
 import roslib
 roslib.load_manifest('orcas')
 import sys
@@ -10,9 +11,9 @@ from std_msgs.msg import String, Header
 from sensor_msgs.msg import Image, LaserScan
 from cv_bridge import CvBridge, CvBridgeError
 
-from laser_distance_estimator import LaserLineDetector
+from pathfinder_laser_calibrator import LaserLineDetector
 
-CAMERA_H_FOV = 64.4  # degrees
+CAMERA_H_FOV = math.radians(64.4)  # degrees
 CAMERA_H_PX = 1280  # px
 
 
@@ -55,7 +56,7 @@ class LaserRanger(object):
         self.scan_pub.publish(
             header=Header(
                 stamp=rospy.Time.now(),  # TODO: use camera image time
-                frame_id='cam'
+                frame_id='webcam_frame'
             ),
             angle_min=-CAMERA_H_FOV / 2.,
             angle_max=CAMERA_H_FOV / 2.,
@@ -64,7 +65,7 @@ class LaserRanger(object):
             scan_time=1.0/30.0,
             range_min=0.0,
             range_max=50.0,
-            ranges=self.ll.cur_distances,
+            ranges=self.ll.cur_distances / 100.0,
         )
 
 
