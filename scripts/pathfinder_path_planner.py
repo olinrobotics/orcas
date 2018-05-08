@@ -63,7 +63,7 @@ class PathPlanner(object):
         self.motor_pub.publish(
             header=path_header,
             propeller_angle=95,
-            rudder_angle=int(-math.degrees(desired_angle) + 90)
+            rudder_angle=int(math.degrees(desired_angle) + 90)
         )
 
     def get_pose(self, angle):
