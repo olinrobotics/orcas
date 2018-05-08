@@ -152,7 +152,7 @@ int main(int argc, char **argv) {
     LaserRanger ranger(calibration_path);
 
     std::cerr << "Initialized. Starting loop soon...\n";
-    while (ros::ok()) {
+    while (true) {
         capture >> frame;
         if (frame.empty()) {
             break;

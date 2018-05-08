@@ -22,41 +22,21 @@ class PathPlanner(object):
         self.motor_pub = rospy.Publisher("motor_plan", BoatMotorCommand, queue_size=10)
 
     def on_scan(self, laser_scan):
-        gap_left, gap_right, left_is_empty, right_is_empty = path_location(laser_scan.ranges)
-        sys.stderr.write("{} [{} {}] {}\n".format(
-            "<   " if left_is_empty else "<!!!",
-            gap_left,
-            gap_right,
-            "   >" if right_is_empty else "!!!>"
-        ))
+        gap_center, gap_width = path_location(laser_scan.ranges)
+        sys.stderr.write("{} {}\n".format(gap_center, gap_width))
 
         path_header = Header(
             stamp=rospy.Time.now(),
             frame_id='webcam_frame'
         )
 
-        gap_left_angle = gap_left * laser_scan.angle_increment + laser_scan.angle_min
-        # check to see if there's an obstacle left of the found gap
-        if left_is_empty:
-            gap_left_angle = laser_scan.angle_min
-
-        gap_right_angle = gap_right * laser_scan.angle_increment + laser_scan.angle_min
-        # check to see if there's an obstacle right of the found gap
-        if right_is_empty:
-            gap_right_angle = laser_scan.angle_max
-
-        desired_angle = gap_left_angle + (gap_right_angle - gap_left_angle) * 0.5
-
-        motor_power = 1.0
-        if gap_right_angle - gap_left_angle < math.radians(5.0):
-            motor_power = 0.1
-            desired_angle = 0.0
+        desired_angle = gap_center * laser_scan.angle_increment + laser_scan.angle_min
 
         self.path_pub.publish(
             header=path_header,
             type=Marker.ARROW,
             pose=self.get_pose(desired_angle),
-            scale=Vector3(0.1 * motor_power, 0.01, 0.01),
+            scale=Vector3(0.1, 0.01, 0.01),
             color=ColorRGBA(0.0, 0.0, 1.0, 0.4)
         )
 
@@ -87,11 +67,11 @@ class PathPlanner(object):
 def path_location(range_array):
     count = 0
     longest_pos = -1
-    threshold = 0.5
+    threshold = 1.0
     location_range = [0, 0]  # indices
     length = len(range_array)
     for i in range(length):
-        if range_array[i] >= threshold and not math.isnan(range_array[i]):
+        if range_array[i] >= threshold or math.isnan(range_array[i]):
             count += 1
             if longest_pos < count:
                 longest_pos = count
@@ -102,11 +82,7 @@ def path_location(range_array):
         i += 1
     center_point = (location_range[0] + location_range[1]) / 2.0
 
-    left_is_empty = all(math.isnan(v) for v in range_array[0:location_range[0]])
-    right_is_empty = all(math.isnan(v) for v in range_array[location_range[1] + 1:])
-
-
-    return location_range[0], location_range[1], left_is_empty, right_is_empty
+    return center_point, length
 
 
 def rudder_pos(gap_center, range_length):
