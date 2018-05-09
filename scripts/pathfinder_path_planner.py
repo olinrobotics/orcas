@@ -60,7 +60,7 @@ class PathPlanner(object):
             header=path_header,
             type=Marker.ARROW,
             pose=self.get_pose(desired_angle),
-            scale=Vector3(0.1 * motor_power, 0.01, 0.01),
+            scale=Vector3(0.5 * motor_power, 0.03, 0.03),
             color=ColorRGBA(0.0, 0.0, 1.0, 0.4)
         )
 
