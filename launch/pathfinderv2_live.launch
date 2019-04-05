@@ -2,6 +2,7 @@
  
  <!--webcam publisher-->
   <include file=$(find pointgrey_camera_driver)/launch/camera.launch"/>
+
     <!-- laser line detector, cpp edition -->
     <node name="pathfinder_laser_ranger" pkg="orcas" type="pathfinder_laser_ranger" args="0" />
     <node name="pathfinder_path_planner" pkg="orcas" type="pathfinder_path_planner.py" />
