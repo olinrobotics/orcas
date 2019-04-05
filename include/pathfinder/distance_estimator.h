@@ -1,3 +1,4 @@
+#pragma once
 #include "sensor_msgs/LaserScan.h"
 
 class DistanceEstimator {

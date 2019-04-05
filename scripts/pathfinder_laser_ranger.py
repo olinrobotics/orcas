@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
+import math
 import roslib
 roslib.load_manifest('orcas')
 import sys
@@ -10,9 +11,9 @@ from std_msgs.msg import String, Header
 from sensor_msgs.msg import Image, LaserScan
 from cv_bridge import CvBridge, CvBridgeError
 
-from laser_distance_estimator import LaserLineDetector
+from pathfinder_laser_calibrator import LaserLineDetector
 
-CAMERA_H_FOV = 64.4  # degrees
+CAMERA_H_FOV = math.radians(64.4)  # degrees
 CAMERA_H_PX = 1280  # px
 
 
@@ -30,8 +31,8 @@ class LaserRanger(object):
             self.image_sub = rospy.Subscriber("camera/image", Image, self.on_image)
         else:
             self.cap = cv2.VideoCapture(self.camera_id)
-            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH,10000)
-            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT,10000)
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 10000)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 10000)
 
         self.ll = LaserLineDetector(camera=None)
 
@@ -46,8 +47,6 @@ class LaserRanger(object):
             ret, cv_image = self.cap.read()
 
         (rows, cols, channels) = cv_image.shape
-        if cols > 60 and rows > 60 :
-            cv2.circle(cv_image, (50,50), 10, 255)
 
         self.ll.step(cv_image)
         self.ll.find_distances()
@@ -57,7 +56,7 @@ class LaserRanger(object):
         self.scan_pub.publish(
             header=Header(
                 stamp=rospy.Time.now(),  # TODO: use camera image time
-                frame_id='cam'
+                frame_id='webcam_frame'
             ),
             angle_min=-CAMERA_H_FOV / 2.,
             angle_max=CAMERA_H_FOV / 2.,
@@ -66,8 +65,9 @@ class LaserRanger(object):
             scan_time=1.0/30.0,
             range_min=0.0,
             range_max=50.0,
-            ranges=self.ll.cur_distances,
+            ranges=self.ll.cur_distances / 100.0,
         )
+
 
 def main(args):
     if len(args) == 1:

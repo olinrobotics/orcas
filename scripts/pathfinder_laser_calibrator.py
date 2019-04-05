@@ -11,8 +11,13 @@ import scipy.ndimage
 # NOTE(danny): these are pretty much the same because the colors are blown out
 # on the webcam, and with a filter it doesn't really matter what hue things are
 THEORETICAL_GREEN_HUE = 84  # if we believe in nm -> hsv
-GREEN_LOW = np.array([0, 0, 0])
-GREEN_HIGH = np.array([255, 140, 255])
+MASK_LOW = np.array([0, 0, 0])
+MASK_HIGH = np.array([255, 255, 255])
+
+# values used to say that an area should be considered highly likely to be lit by a laser
+BRIGHT_LOW = np.array([130, 130, 130])
+BRIGHT_HIGH = np.array([255, 255, 255])
+
 RED_LOW = np.array([0, 0, 0])
 RED_HIGH = np.array([255, 130, 255])
 
@@ -31,16 +36,34 @@ CHOP_OFF_SIDES = True
 # Keeping original calibration data for debugging purposes
 # distance (cm), slope (px/px), intercept (px)
 DEFAULT_CALIBRATION_DATA = np.array([
-    [10.0, 0.08375113961068108, 613.8094457107748],
-    [15.0, 0.08381618498261525, 556.1974345501516],
-    [20.0, 0.08986005066514643, 529.0823817137535],
-    [25.0, 0.09322673874571293, 500.07171733379323],
-    [30.0, 0.09781964396062857, 482.1870497656779],
-    [35.0, 0.10014931123851636, 468.3442543633034],
-    [40.0, 0.09934762035214356, 458.54197372319885],
-    [45.0, 0.09719341659355654, 452.15569262450776],
-    [50.0, 0.096715703558109, 446.30163810992184]
+    [10.0, 0.08375113961068108, 613.8094457107748 / 720.],
+    [15.0, 0.08381618498261525, 556.1974345501516 / 720.],
+    [20.0, 0.08986005066514643, 529.0823817137535 / 720.],
+    [25.0, 0.09322673874571293, 500.07171733379323 / 720.],
+    [30.0, 0.09781964396062857, 482.1870497656779 / 720.],
+    [35.0, 0.10014931123851636, 468.3442543633034 / 720.],
+    [40.0, 0.09934762035214356, 458.54197372319885 / 720.],
+    [45.0, 0.09719341659355654, 452.15569262450776 / 720.],
+    [50.0, 0.096715703558109, 446.30163810992184 / 720.]
 ])
+
+PARTIAL_CALIBRATION_DATA = np.array([
+    [10.0, 0.00532441604458, 609.923296015 / 720.],
+    [15.0, 0.00158105854316, 554.964525498 / 720.],
+    [20.0, 0.0035585336094, 525.053807983 / 720.],
+    [25.0, 0.00342775818148, 506.446205515 / 720.],
+    [30.0, 0.00374348072362, 492.178516176 / 720.],
+    [35.0, 0.00399844538653, 481.977655348 / 720.],
+    [40.0, 0.00377822965241, 473.869403212 / 720.],
+    [45.0, 0.00485683346298, 469.961983244 / 720.],
+    [50.0, 0.00370786443564, 463.448781636 / 720.],
+    [55.0, 0.00454729626945, 458.905182444 / 720.],
+    [60.0, 0.00422393893265, 454.871022214 / 720.]
+])
+
+
+def nothing(x):
+    pass
 
 
 class DistanceEstimator(object):
@@ -76,12 +99,12 @@ class DistanceEstimator(object):
         width = len(coms)
 
         # TODO(danny): precalculate this
-        corrected_coms = coms - np.arange(-width / 2, width / 2) * self.slope
-        return self.a + self.b * np.log(corrected_coms - self.c)
+        corrected_coms = coms - np.linspace(-0.5, 0.5, width) * self.slope
+        return self.a + self.b * np.tan(corrected_coms - self.c)
 
     def save(self, path=CALIBRATION_PATH):
         with open(path, 'w') as calibration_file:
-            calibration_file.write('# lambda px: a+b*np.log(px - c) -> distance cm\n')
+            calibration_file.write('# lambda px: a + b * np.tan(px - c) -> distance cm\n')
             calibration_file.write('{},{},{}\n'.format(self.a, self.b, self.c))
             calibration_file.write('# angle of laser line relative to camera (radians)\n')
             calibration_file.write('{}\n'.format(self.theta))
@@ -91,19 +114,23 @@ class DistanceEstimator(object):
     @staticmethod
     def find_calibration(calibration_data, show=False):
         import scipy.optimize  # delayed import because it's not usually necessary
-        # distance (cm), slope (px/px), intercept (px)
+        # distance (cm), slope (px/px), intercept (px, normalized to 0.0 to 1.0)
 
         avg_theta = np.mean(np.arctan(calibration_data[:, 1]))
 
         dist_cm = calibration_data[:, 0]
         intercept_px = calibration_data[:, 2]
-        a, b, c = scipy.optimize.curve_fit(lambda x,a,b,c: a+b*np.log(x - c), intercept_px, dist_cm)[0]
+        a, b, c = scipy.optimize.curve_fit(
+            lambda x, a, b, c: a + b * np.tan(x - c),
+            intercept_px,
+            dist_cm
+        )[0]
 
         if show:
             import matplotlib.pyplot as plt
             plt.plot(intercept_px, dist_cm, 'o', label='Original data', markersize=10)
             smoother_px_values = np.linspace(intercept_px[0], intercept_px[-1], 100)
-            plt.plot(smoother_px_values, a + b * np.log(smoother_px_values - c), 'r', label='Fitted line')
+            plt.plot(smoother_px_values, a + b * np.tan(smoother_px_values - c), 'r', label='Fitted line')
             plt.legend()
             plt.show()
 
@@ -148,12 +175,21 @@ class LaserLineDetector(object):
 
     def find_laser_coms(self):
         self.cur_mask = find_laser_line_mask(self.cur_frame)
-        self.cur_coms = get_laser_coms_from_mask(self.cur_mask)
+        mask = cv2.inRange(self.cur_frame, BRIGHT_LOW, BRIGHT_HIGH)
+        self.cur_frame = cv2.addWeighted(
+            self.cur_frame, 0.5,
+            cv2.bitwise_and(self.cur_frame, self.cur_frame, mask=mask), 60 / 255.0,
+            0.0
+        )
+        self.cur_coms = get_laser_coms_from_img(self.cur_mask, self.cur_frame)
 
     def draw_laser_coms(self):
         for i, mass_px in enumerate(self.cur_coms):
             h = int(mass_px)
-            cv2.line(self.cur_frame, (i,h), (i,h), (255,0,0), 1)
+            cv2.line(self.cur_frame, (i, h), (i, h), (255, 0, 0), 1)
+
+    def draw_mask(self):
+        self.cur_frame = cv2.bitwise_and(self.cur_frame, self.cur_frame, mask=self.cur_mask)
 
     def draw_intercept(self):
         m, c = self.approximate_slope_intercept()
@@ -183,7 +219,8 @@ class LaserLineDetector(object):
 
         if not len(y):
             return 0.0, 0
-        m, c = np.linalg.lstsq(A, y, rcond=None)[0]
+        # rcond=None doesn't work on older scipy :(
+        m, c = np.linalg.lstsq(A, y, rcond=-1)[0]
 
         # useful little debug code that I don't want to get rid of yet
         if debug:
@@ -200,8 +237,9 @@ class LaserLineDetector(object):
             sys.stderr.write('Estimator not initialized!\n')
             sys.stderr.flush()
             return
+        height, width, channels = self.cur_frame.shape
+        dists = self.estimator.calculate_distances(self.cur_coms / float(height))
 
-        dists = self.estimator.calculate_distances(self.cur_coms)
         self.cur_distances = dists
 
     def draw_distances(self):
@@ -213,6 +251,10 @@ class LaserLineDetector(object):
     def run_windowed(self):
         self.cap = cv2.VideoCapture(self.camera_id)
 
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 10000)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 10000)
+        self.actual_frame_height = float(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
         calibration_data = []
         calibrate_step = 10.
         print('Put setup {}cm away from wall to calibrate (hit c)'.format(
@@ -223,7 +265,7 @@ class LaserLineDetector(object):
         while True:
             ret, frame = self.cap.read()
             self.step(frame)
-
+            self.draw_mask()
             self.draw_laser_coms()
             self.draw_intercept()
             self.find_distances()
@@ -237,7 +279,7 @@ class LaserLineDetector(object):
                 print('Capturing {}cm...'.format(calibrate_step))
                 m, c = self.approximate_slope_intercept()
                 calibration_data.append(
-                    [calibrate_step, m, c]
+                    [calibrate_step, m, c / self.actual_frame_height]
                 )
                 calibrate_step += 5.
                 print('Place setup at {}cm from wall or hit d for done'.format(
@@ -263,6 +305,22 @@ def get_laser_coms_from_mask(mask):
 
     return center_of_masses
 
+def get_laser_coms_from_img(mask, img):
+    gray = img[:, :, 0]
+    gray = cv2.bitwise_and(gray, gray, mask=mask)
+    gray = np.array(gray / 255.0, dtype=np.float32)
+    rows, cols = gray.shape
+    center_of_masses = np.zeros(cols)
+    for col in range(cols):
+        if np.sum(gray[:, col]) < rows / 36.0:
+            center_of_masses[col] = 0.0
+            continue
+        column = gray[:, col]
+        if any(column):
+            column = np.power(column, 6.0)
+            center_of_masses[col] = scipy.ndimage.measurements.center_of_mass(column)[0]
+    return center_of_masses
+
 def get_average_laser_px(center_of_masses):
     mean_laser_px = np.mean(
         center_of_masses[np.nonzero(center_of_masses)]
@@ -271,9 +329,7 @@ def get_average_laser_px(center_of_masses):
     return mean_laser_px
 
 def find_laser_line_mask(img):
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
-    mask = cv2.inRange(hsv, GREEN_LOW, GREEN_HIGH)
+    mask = cv2.inRange(img, MASK_LOW, MASK_HIGH)
 
     # draw a rectangle over the top quarter of the image, the laser
     # should never be detected there (unless you have a bad laser angle offset)
@@ -289,6 +345,8 @@ def find_laser_line_mask(img):
 
 
 if __name__ == '__main__':
+    # DistanceEstimator.find_calibration(PARTIAL_CALIBRATION_DATA, show=True).save()
+    # exit(0)
     if len(sys.argv) != 2:
         print('usage: python laser_distance_estimator.py <opencv_camera_id/path_to_video>')
         exit(1)

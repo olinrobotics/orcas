@@ -1,3 +1,4 @@
+#pragma once
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <opencv2/highgui/highgui.hpp>
@@ -14,8 +15,8 @@ public:
 
     bool Step(const Mat& frame);
 
-    Mat FindLaserMask(const Mat& frame);
-    std::unique_ptr<sensor_msgs::LaserScan> FindLaserCOMs(const Mat& mask);
+    Mat FindFrameMask(const Mat& gray_frame);
+    std::unique_ptr<sensor_msgs::LaserScan> FindLaserCOMs(const Mat& gray);
 
 private:
     DistanceEstimator distance_estimator_;

@@ -1,0 +1,7 @@
+<launch>
+    <!-- laser line detector, cpp edition -->
+    <node name="pathfinder_laser_ranger" pkg="orcas" type="pathfinder_laser_ranger" args="test_data/avoid.mp4" />
+    <node name="pathfinder_path_planner" pkg="orcas" type="pathfinder_path_planner.py" />
+    <node name="pathfinder_serial_arduino" pkg="orcas" type="pathfinder_serial_arduino.py" />
+    <!-- <node name="hz" pkg="rostopic" type="rostopic" args="echo /structured_light_scan" output="screen" /> -->
+</launch>
