@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker run -it --privileged boat roslaunch orcas pathfinderv2_live.launch
+docker run -it --privileged boat roslaunch orcas pathfinder_live.launch
